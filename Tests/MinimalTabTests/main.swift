@@ -2,4 +2,5 @@
 runWindowInfoTests()
 runKeyboardShortcutTests()
 runSwitcherSessionTests()
+runPreferencesTests()
 TestRun.shared.finish()
