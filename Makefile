@@ -1,4 +1,4 @@
-.PHONY: build test app run release publish
+.PHONY: build test app run release publish bump-patch bump-minor bump-major
 
 VERSION := $(shell /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" Resources/Info.plist)
 
@@ -36,3 +36,14 @@ publish: test release
 		--generate-notes \
 		--notes "**Install:** unzip, move \`My AltTab.app\` to Applications, open via System Settings > Privacy & Security (\"Open Anyway\"), then grant Accessibility permission. See the [README](README.md#install) / [한국어 안내](README.ko.md#설치)."
 	@echo "Published: v$(VERSION)"
+
+# Bump CFBundleShortVersionString (semver) and CFBundleVersion (build
+# number), then commit. Release flow: make bump-minor && make publish
+bump-patch:
+	@bash scripts/bump.sh patch
+
+bump-minor:
+	@bash scripts/bump.sh minor
+
+bump-major:
+	@bash scripts/bump.sh major
