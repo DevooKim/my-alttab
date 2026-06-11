@@ -58,6 +58,7 @@ public final class SwitcherController {
             activeShortcut = preferences.sameAppShortcut
         }
         let windows = WindowInfo.visibleWindows(raw, includeMinimized: preferences.includeMinimized)
+        NSLog("MinimalTab: trigger \(mode), \(raw.count) windows enumerated, \(windows.count) visible")
         guard !windows.isEmpty else {
             activeShortcut = nil
             return

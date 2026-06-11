@@ -8,6 +8,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     private var hotKeys: HotKeyMonitor?
 
     public func applicationDidFinishLaunching(_ notification: Notification) {
+        NSLog("MinimalTab: launched, accessibility trusted=\(AccessibilityPermission.isGranted)")
         // PRD 3.A: menu-bar-only app, no Dock icon. (LSUIElement in
         // Info.plist covers the bundled app; this covers `swift run`.)
         NSApp.setActivationPolicy(.accessory)
