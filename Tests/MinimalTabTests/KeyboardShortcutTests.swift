@@ -37,4 +37,12 @@ func runKeyboardShortcutTests() {
 
     expectEqual(KeyboardShortcut.globalDefault.displayString, "⌥⇥", "display string for Option+Tab")
     expectEqual(custom.displayString, "⌃Space", "display string for Control+Space")
+
+    // Live modifier preview while recording one key at a time
+    expectEqual(KeyboardShortcut.modifierSymbols(CGEventFlags.maskAlternate.rawValue), "⌥",
+                "modifier symbols for Option alone")
+    expectEqual(
+        KeyboardShortcut.modifierSymbols(CGEventFlags.maskAlternate.rawValue | CGEventFlags.maskCommand.rawValue),
+        "⌥⌘", "modifier symbols for Option+Command")
+    expectEqual(KeyboardShortcut.modifierSymbols(0), "", "no modifiers yields empty string")
 }

@@ -43,12 +43,17 @@ public struct KeyboardShortcut: Codable, Equatable {
     }
 
     public var displayString: String {
+        Self.modifierSymbols(modifiers) + Self.keyName(for: keyCode)
+    }
+
+    /// Symbols for a raw modifier mask, in standard macOS order — used for
+    /// live feedback while recording a shortcut one key at a time.
+    public static func modifierSymbols(_ modifiers: UInt64) -> String {
         var s = ""
         if modifiers & CGEventFlags.maskControl.rawValue != 0 { s += "⌃" }
         if modifiers & CGEventFlags.maskAlternate.rawValue != 0 { s += "⌥" }
         if modifiers & CGEventFlags.maskShift.rawValue != 0 { s += "⇧" }
         if modifiers & CGEventFlags.maskCommand.rawValue != 0 { s += "⌘" }
-        s += Self.keyName(for: keyCode)
         return s
     }
 
