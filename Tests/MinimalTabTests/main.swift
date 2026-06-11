@@ -1,3 +1,3 @@
 // Test entry point. Add each suite's run function here.
-runSmokeTests()
+runWindowInfoTests()
 TestRun.shared.finish()
