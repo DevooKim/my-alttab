@@ -1,13 +1,26 @@
 # My AltTab
 
+[한국어](README.ko.md)
+
 A fast, text-only window switcher for macOS. No window previews, no screen
 recording permission — just app names and window titles.
 
-## Usage
+## Features
+
 - **Option + Tab** — switch between all windows (hold Option, tap Tab to cycle, release to switch)
-- **Option + `** — switch between the current app's windows
-- **Escape** — cancel
-- Shortcuts are configurable from the menu bar icon → Settings…
+- **Option + `** — switch between the current app's windows only
+- **MRU ordering** — windows are listed by most-recently-used, so a single
+  trigger press toggles between your two latest windows
+- **Quick Actions** — while the list is open: `W` closes the selected
+  window, `Q` quits its app
+- **Reverse navigation** — `←` moves the selection backward
+- **Settings key** — `,` opens settings while the list is open
+- **App exclusion list** — remote-desktop/VM viewers are excluded by
+  default (AltTab's list); add or remove apps in Settings
+- Minimized windows shown dimmed with a suffix (toggleable), untitled
+  windows fall back to "Untitled", panel appears on the display under
+  your cursor
+- All keys are configurable from the menu bar icon → Settings…
 
 ## Install
 
@@ -20,22 +33,20 @@ recording permission — just app names and window titles.
    Privacy & Security > Accessibility) and relaunch the app.
 
 ## Requirements
+
 - macOS 13+
 - Accessibility permission (System Settings > Privacy & Security > Accessibility)
 
-## Build
+## Build from source
 
 ```sh
-make test   # unit tests (swift run minimaltab-tests — XCTest needs Xcode, which isn't required here)
-make app    # builds "dist/My AltTab.app"
-make run    # build and launch
+make test     # unit tests (swift run minimaltab-tests — no Xcode required)
+make app      # builds "dist/My AltTab.app"
+make run      # build and launch
+make release  # builds the distributable zip
 ```
 
-Note: the bundle is ad-hoc signed, so Accessibility permission must be
-re-granted after each rebuild during development (toggle the MinimalTab
-entry off/on in System Settings).
-
-## Manual verification
-
-See [docs/smoke-test.md](docs/smoke-test.md) for the full checklist covering
-behavior that unit tests can't reach (hotkeys, panel, permissions).
+Note: locally built bundles are signed with a self-signed identity
+("MinimalTab Dev"), so Accessibility permission must be granted once per
+identity. See [docs/smoke-test.md](docs/smoke-test.md) for the manual
+verification checklist.
