@@ -7,6 +7,7 @@ public final class SwitcherController {
     private let activator = WindowActivator()
     private let preferences: Preferences
     private let viewModel = SwitcherViewModel()
+    private let mru = MRUTracker()
     private lazy var panel = SwitcherPanel(model: viewModel)
 
     private var session: SwitcherSession?
@@ -16,6 +17,7 @@ public final class SwitcherController {
 
     public init(preferences: Preferences = .shared) {
         self.preferences = preferences
+        mru.startObservingActivations()
         viewModel.onRowClicked = { [weak self] index in
             self?.session?.select(index: index)
             self?.commit()
@@ -30,6 +32,44 @@ public final class SwitcherController {
             return
         }
         begin(mode: mode)
+    }
+
+    /// Shift+trigger: move backward; from idle, open selecting the last item.
+    public func handleReverseTrigger(mode: SwitcherMode) {
+        if session != nil {
+            session?.retreat()
+            syncViewModel()
+            return
+        }
+        begin(mode: mode)
+        if let count = session?.windows.count, count > 1 {
+            session?.select(index: count - 1)
+            syncViewModel()
+        }
+    }
+
+    /// Quick Action: close the selected window without leaving the list.
+    public func quickCloseSelected() {
+        guard let selected = session?.selectedWindow else { return }
+        activator.close(selected)
+        session?.removeSelected()
+        endSessionIfEmptyOrSync()
+    }
+
+    /// Quick Action: quit the selected window's app without leaving the list.
+    public func quickQuitSelected() {
+        guard let selected = session?.selectedWindow else { return }
+        activator.quitApp(pid: selected.pid)
+        session?.removeWindows(pid: selected.pid)
+        endSessionIfEmptyOrSync()
+    }
+
+    private func endSessionIfEmptyOrSync() {
+        if session?.windows.isEmpty ?? true {
+            cancel()
+        } else {
+            syncViewModel()
+        }
     }
 
     /// Called by HotKeyMonitor on flagsChanged during an active session.
@@ -49,12 +89,13 @@ public final class SwitcherController {
 
     private func begin(mode: SwitcherMode) {
         let raw: [WindowInfo]
+        let rank: (WindowInfo) -> Int? = { [mru] in mru.rank(of: $0.axElement) }
         switch mode {
         case .global:
-            raw = enumerator.allWindows()
+            raw = enumerator.allWindows(blacklist: preferences.blacklistedBundleIDs, mruRank: rank)
             activeShortcut = preferences.globalShortcut
         case .sameApp:
-            raw = enumerator.frontmostAppWindows()
+            raw = enumerator.frontmostAppWindows(mruRank: rank)
             activeShortcut = preferences.sameAppShortcut
         }
         let windows = WindowInfo.visibleWindows(raw, includeMinimized: preferences.includeMinimized)
@@ -75,6 +116,9 @@ public final class SwitcherController {
         panel.hide()
         if let selected {
             activator.activate(selected)
+            if let axElement = selected.axElement {
+                mru.touch(axElement)
+            }
         }
     }
 

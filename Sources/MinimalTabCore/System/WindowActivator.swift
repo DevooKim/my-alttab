@@ -24,4 +24,22 @@ public struct WindowActivator {
         AXUIElementPerformAction(axElement, kAXRaiseAction as CFString)
         app?.activate(options: [.activateIgnoringOtherApps])
     }
+
+    /// Quick Action: presses the window's close button (same as clicking
+    /// the red traffic light — the app may show a save dialog).
+    public func close(_ window: WindowInfo) {
+        guard let axElement = window.axElement else { return }
+        var button: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(axElement, kAXCloseButtonAttribute as CFString, &button) == .success,
+              let value = button, CFGetTypeID(value) == AXUIElementGetTypeID() else {
+            return
+        }
+        let closeButton = unsafeDowncast(value as AnyObject, to: AXUIElement.self)
+        AXUIElementPerformAction(closeButton, kAXPressAction as CFString)
+    }
+
+    /// Quick Action: asks the app to quit normally (it may prompt to save).
+    public func quitApp(pid: pid_t) {
+        NSRunningApplication(processIdentifier: pid)?.terminate()
+    }
 }

@@ -20,6 +20,13 @@ public final class HotKeyMonitor {
     /// Fired on every matching trigger press (first press opens the
     /// switcher; repeats advance the selection).
     public var onTrigger: ((SwitcherMode) -> Void)?
+    /// Fired when the trigger is pressed with Shift added — moves the
+    /// selection backward (Alt+Shift+Tab convention).
+    public var onReverseTrigger: ((SwitcherMode) -> Void)?
+    /// Quick Action during an active session: close the selected window.
+    public var onQuickClose: (() -> Void)?
+    /// Quick Action during an active session: quit the selected app.
+    public var onQuickQuit: (() -> Void)?
     /// Raw flags on flagsChanged during an active session; the controller
     /// checks `modifiersStillHeld` against the shortcut that opened the
     /// session and commits when the modifiers are released.
@@ -95,9 +102,28 @@ public final class HotKeyMonitor {
                 DispatchQueue.main.async { self.onTrigger?(.sameApp) }
                 return nil
             }
-            if isSessionActive() && keyCode == 53 { // Escape
-                DispatchQueue.main.async { self.onCancel?() }
+            if preferences.globalShortcut.matchesWithShift(keyCode: keyCode, flags: flags) {
+                DispatchQueue.main.async { self.onReverseTrigger?(.global) }
                 return nil
+            }
+            if preferences.sameAppShortcut.matchesWithShift(keyCode: keyCode, flags: flags) {
+                DispatchQueue.main.async { self.onReverseTrigger?(.sameApp) }
+                return nil
+            }
+            if isSessionActive() {
+                switch keyCode {
+                case 53: // Escape
+                    DispatchQueue.main.async { self.onCancel?() }
+                    return nil
+                case Int64(preferences.quickCloseKey):
+                    DispatchQueue.main.async { self.onQuickClose?() }
+                    return nil
+                case Int64(preferences.quickQuitKey):
+                    DispatchQueue.main.async { self.onQuickQuit?() }
+                    return nil
+                default:
+                    break
+                }
             }
             return Unmanaged.passUnretained(event)
 
