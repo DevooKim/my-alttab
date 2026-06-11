@@ -28,6 +28,10 @@ public struct KeyboardShortcut: Codable, Equatable {
         keyCode: 50, // kVK_ANSI_Grave (`)
         modifiers: CGEventFlags.maskAlternate.rawValue
     )
+    public static let settingsDefault = KeyboardShortcut(
+        keyCode: 43, // kVK_ANSI_Comma (,)
+        modifiers: CGEventFlags.maskAlternate.rawValue
+    )
 
     /// True when a keyDown event is exactly this shortcut (no extra
     /// relevant modifiers allowed).
@@ -94,6 +98,8 @@ public struct KeyboardShortcut: Codable, Equatable {
             18: "1", 19: "2", 20: "3", 21: "4", 23: "5", 22: "6",
             26: "7", 28: "8", 25: "9", 29: "0",
             123: "←", 124: "→", 125: "↓", 126: "↑",
+            43: ",", 47: ".", 44: "/", 41: ";", 39: "'",
+            33: "[", 30: "]", 42: "\\", 27: "-", 24: "=",
         ]
         return names[keyCode] ?? "key\(keyCode)"
     }

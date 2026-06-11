@@ -23,6 +23,8 @@ public final class HotKeyMonitor {
     /// Fired when the trigger is pressed with Shift added — moves the
     /// selection backward (Alt+Shift+Tab convention).
     public var onReverseTrigger: ((SwitcherMode) -> Void)?
+    /// Fired when the settings shortcut is pressed (works anywhere).
+    public var onOpenSettings: (() -> Void)?
     /// Single configurable key during an active session: move backward.
     public var onReverseKey: (() -> Void)?
     /// Quick Action during an active session: close the selected window.
@@ -102,6 +104,10 @@ public final class HotKeyMonitor {
             }
             if preferences.sameAppShortcut.matches(keyCode: keyCode, flags: flags) {
                 DispatchQueue.main.async { self.onTrigger?(.sameApp) }
+                return nil
+            }
+            if preferences.settingsShortcut.matches(keyCode: keyCode, flags: flags) {
+                DispatchQueue.main.async { self.onOpenSettings?() }
                 return nil
             }
             if preferences.globalShortcut.matchesWithShift(keyCode: keyCode, flags: flags) {

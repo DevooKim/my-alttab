@@ -6,6 +6,7 @@ public struct SettingsView: View {
     @AppStorage(Preferences.Key.includeMinimized) private var includeMinimized = true
     @State private var globalShortcut = Preferences.shared.globalShortcut
     @State private var sameAppShortcut = Preferences.shared.sameAppShortcut
+    @State private var settingsShortcut = Preferences.shared.settingsShortcut
     @State private var reverseKey = Preferences.shared.reverseKey
     @State private var quickCloseKey = Preferences.shared.quickCloseKey
     @State private var quickQuitKey = Preferences.shared.quickQuitKey
@@ -20,6 +21,7 @@ public struct SettingsView: View {
                 ShortcutRecorderView(label: "전체 윈도우 전환 (Global Switch)", shortcut: $globalShortcut)
                 ShortcutRecorderView(label: "현재 앱 윈도우 전환 (Same-App Switch)", shortcut: $sameAppShortcut)
                 SingleKeyRecorderView(label: "역방향 이동 키 (리스트 열린 상태)", keyCode: $reverseKey)
+                ShortcutRecorderView(label: "설정 창 열기", shortcut: $settingsShortcut)
             }
             Section("Quick Actions (리스트가 열린 상태에서)") {
                 SingleKeyRecorderView(label: "선택한 창 닫기", keyCode: $quickCloseKey)
@@ -56,6 +58,7 @@ public struct SettingsView: View {
         .fixedSize(horizontal: false, vertical: true)
         .onChange(of: globalShortcut) { Preferences.shared.globalShortcut = $0 }
         .onChange(of: sameAppShortcut) { Preferences.shared.sameAppShortcut = $0 }
+        .onChange(of: settingsShortcut) { Preferences.shared.settingsShortcut = $0 }
         .onChange(of: reverseKey) { Preferences.shared.reverseKey = $0 }
         .onChange(of: quickCloseKey) { Preferences.shared.quickCloseKey = $0 }
         .onChange(of: quickQuitKey) { Preferences.shared.quickQuitKey = $0 }

@@ -7,6 +7,7 @@ public final class Preferences {
         public static let includeMinimized = "includeMinimized"
         public static let globalShortcut = "globalShortcut"
         public static let sameAppShortcut = "sameAppShortcut"
+        public static let settingsShortcut = "settingsShortcut"
         public static let reverseKey = "reverseKey"
         public static let quickCloseKey = "quickCloseKey"
         public static let quickQuitKey = "quickQuitKey"
@@ -35,6 +36,12 @@ public final class Preferences {
     public var sameAppShortcut: KeyboardShortcut {
         get { readShortcut(Key.sameAppShortcut) ?? .sameAppDefault }
         set { writeShortcut(newValue, key: Key.sameAppShortcut) }
+    }
+
+    /// Opens the settings window from anywhere.
+    public var settingsShortcut: KeyboardShortcut {
+        get { readShortcut(Key.settingsShortcut) ?? .settingsDefault }
+        set { writeShortcut(newValue, key: Key.settingsShortcut) }
     }
 
     /// Moves the selection backward while the list is open.

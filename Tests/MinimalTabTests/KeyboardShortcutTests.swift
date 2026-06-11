@@ -59,6 +59,7 @@ func runKeyboardShortcutTests() {
                 "left control maps to control flag")
     expect(KeyboardShortcut.modifierFlag(for: 48) == nil, "Tab is not a modifier")
     expectEqual(KeyboardShortcut.keyName(for: 56), "⇧", "left shift display name")
+    expectEqual(KeyboardShortcut.settingsDefault.displayString, "⌥,", "settings default is Option+Comma")
 
     // Live modifier preview while recording one key at a time
     expectEqual(KeyboardShortcut.modifierSymbols(CGEventFlags.maskAlternate.rawValue), "⌥",

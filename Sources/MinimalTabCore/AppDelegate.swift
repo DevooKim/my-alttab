@@ -31,6 +31,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         hotKeys.onFlagsChanged = { flags in switcher.handleFlagsChanged(flags) }
         hotKeys.onCancel = { switcher.cancel() }
         hotKeys.onQuickClose = { switcher.quickCloseSelected() }
+        hotKeys.onOpenSettings = { settings.show() }
         hotKeys.onQuickQuit = { switcher.quickQuitSelected() }
         hotKeys.start()
         self.hotKeys = hotKeys
