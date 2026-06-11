@@ -14,6 +14,11 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         // Info.plist covers the bundled app; this covers `swift run`.)
         NSApp.setActivationPolicy(.accessory)
 
+        // An accessory app has no main menu, but key equivalents (Cmd+W,
+        // Cmd+Q, copy/paste in text fields) are dispatched through it —
+        // install an invisible minimal one so they work in our windows.
+        NSApp.mainMenu = Self.makeMainMenu()
+
         let settings = SettingsWindowController()
         settingsWindow = settings
         statusBar = StatusBarController(onSettings: { settings.show() })
@@ -55,5 +60,35 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
 
     public func applicationWillTerminate(_ notification: Notification) {
         hotKeys?.stop()
+    }
+
+    private static func makeMainMenu() -> NSMenu {
+        let main = NSMenu()
+
+        let appItem = NSMenuItem()
+        let appMenu = NSMenu()
+        appMenu.addItem(NSMenuItem(title: "Quit My AltTab",
+                                   action: #selector(NSApplication.terminate(_:)),
+                                   keyEquivalent: "q"))
+        appItem.submenu = appMenu
+        main.addItem(appItem)
+
+        let editItem = NSMenuItem()
+        let editMenu = NSMenu(title: "Edit")
+        editMenu.addItem(NSMenuItem(title: "Cut", action: #selector(NSText.cut(_:)), keyEquivalent: "x"))
+        editMenu.addItem(NSMenuItem(title: "Copy", action: #selector(NSText.copy(_:)), keyEquivalent: "c"))
+        editMenu.addItem(NSMenuItem(title: "Paste", action: #selector(NSText.paste(_:)), keyEquivalent: "v"))
+        editMenu.addItem(NSMenuItem(title: "Select All", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a"))
+        editItem.submenu = editMenu
+        main.addItem(editItem)
+
+        let windowItem = NSMenuItem()
+        let windowMenu = NSMenu(title: "Window")
+        windowMenu.addItem(NSMenuItem(title: "Close", action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w"))
+        windowMenu.addItem(NSMenuItem(title: "Minimize", action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m"))
+        windowItem.submenu = windowMenu
+        main.addItem(windowItem)
+
+        return main
     }
 }
