@@ -6,6 +6,14 @@ public enum SwitcherMode {
     case sameApp
 }
 
+/// Set while the settings window is recording a new shortcut. The global
+/// event tap must pass events through untouched during recording —
+/// otherwise pressing the current shortcut (e.g. Option+Tab) triggers the
+/// switcher and swallows the event before the recorder can capture it.
+public enum ShortcutCapture {
+    public static var isRecording = false
+}
+
 /// Global event tap. Requires Accessibility permission (already mandatory
 /// for window enumeration). All callbacks fire on the main thread.
 public final class HotKeyMonitor {
@@ -72,6 +80,9 @@ public final class HotKeyMonitor {
             return Unmanaged.passUnretained(event)
 
         case .keyDown:
+            if ShortcutCapture.isRecording {
+                return Unmanaged.passUnretained(event)
+            }
             let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
             let flags = event.flags
 

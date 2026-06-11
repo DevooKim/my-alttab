@@ -32,6 +32,7 @@ public struct ShortcutRecorderView: View {
 
     private func startRecording() {
         isRecording = true
+        ShortcutCapture.isRecording = true
         monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
             let mods = UInt64(event.modifierFlags.rawValue) & KeyboardShortcut.relevantModifierMask
             if event.keyCode == 53 && mods == 0 { // bare Escape cancels recording
@@ -49,5 +50,6 @@ public struct ShortcutRecorderView: View {
         if let monitor { NSEvent.removeMonitor(monitor) }
         monitor = nil
         isRecording = false
+        ShortcutCapture.isRecording = false
     }
 }
