@@ -29,12 +29,10 @@ func runPreferencesTests() {
     prefs.quickCloseKey = 7 // X
     expectEqual(Preferences(defaults: defaults).quickCloseKey, 7, "quick close key persists")
 
-    // Settings shortcut defaults to Option+Comma and persists
-    expectEqual(prefs.settingsShortcut, .settingsDefault, "settings shortcut defaults to Option+,")
-    let customSettings = KeyboardShortcut(keyCode: 47, modifiers: CGEventFlags.maskCommand.rawValue)
-    prefs.settingsShortcut = customSettings
-    expectEqual(Preferences(defaults: defaults).settingsShortcut, customSettings,
-                "settings shortcut persists")
+    // Settings key (single key while the list is open) defaults to comma
+    expectEqual(prefs.settingsKey, 43, "settings key defaults to comma")
+    prefs.settingsKey = 1 // S
+    expectEqual(Preferences(defaults: defaults).settingsKey, 1, "settings key persists")
 
     // Reverse key defaults to left arrow and persists
     expectEqual(prefs.reverseKey, 123, "reverse key defaults to left arrow")

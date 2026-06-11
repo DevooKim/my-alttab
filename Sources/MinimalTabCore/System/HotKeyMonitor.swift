@@ -23,7 +23,7 @@ public final class HotKeyMonitor {
     /// Fired when the trigger is pressed with Shift added — moves the
     /// selection backward (Alt+Shift+Tab convention).
     public var onReverseTrigger: ((SwitcherMode) -> Void)?
-    /// Fired when the settings shortcut is pressed (works anywhere).
+    /// Fired when the settings key is pressed while the list is open.
     public var onOpenSettings: (() -> Void)?
     /// Single configurable key during an active session: move backward.
     public var onReverseKey: (() -> Void)?
@@ -106,10 +106,6 @@ public final class HotKeyMonitor {
                 DispatchQueue.main.async { self.onTrigger?(.sameApp) }
                 return nil
             }
-            if preferences.settingsShortcut.matches(keyCode: keyCode, flags: flags) {
-                DispatchQueue.main.async { self.onOpenSettings?() }
-                return nil
-            }
             if preferences.globalShortcut.matchesWithShift(keyCode: keyCode, flags: flags) {
                 DispatchQueue.main.async { self.onReverseTrigger?(.global) }
                 return nil
@@ -131,6 +127,9 @@ public final class HotKeyMonitor {
                     return nil
                 case Int64(preferences.quickQuitKey):
                     DispatchQueue.main.async { self.onQuickQuit?() }
+                    return nil
+                case Int64(preferences.settingsKey):
+                    DispatchQueue.main.async { self.onOpenSettings?() }
                     return nil
                 default:
                     break
@@ -158,6 +157,8 @@ public final class HotKeyMonitor {
                     DispatchQueue.main.async { self.onQuickClose?() }
                 case preferences.quickQuitKey:
                     DispatchQueue.main.async { self.onQuickQuit?() }
+                case preferences.settingsKey:
+                    DispatchQueue.main.async { self.onOpenSettings?() }
                 default:
                     break
                 }

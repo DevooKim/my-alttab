@@ -7,7 +7,7 @@ public final class Preferences {
         public static let includeMinimized = "includeMinimized"
         public static let globalShortcut = "globalShortcut"
         public static let sameAppShortcut = "sameAppShortcut"
-        public static let settingsShortcut = "settingsShortcut"
+        public static let settingsKey = "settingsKey"
         public static let reverseKey = "reverseKey"
         public static let quickCloseKey = "quickCloseKey"
         public static let quickQuitKey = "quickQuitKey"
@@ -58,10 +58,10 @@ public final class Preferences {
         set { writeShortcut(newValue, key: Key.sameAppShortcut) }
     }
 
-    /// Opens the settings window from anywhere.
-    public var settingsShortcut: KeyboardShortcut {
-        get { readShortcut(Key.settingsShortcut) ?? .settingsDefault }
-        set { writeShortcut(newValue, key: Key.settingsShortcut) }
+    /// Opens the settings window while the list is open. Default , (43).
+    public var settingsKey: UInt16 {
+        get { (defaults.object(forKey: Key.settingsKey) as? Int).map(UInt16.init) ?? 43 }
+        set { defaults.set(Int(newValue), forKey: Key.settingsKey) }
     }
 
     /// Moves the selection backward while the list is open.
