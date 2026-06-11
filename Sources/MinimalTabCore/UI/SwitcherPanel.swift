@@ -7,6 +7,11 @@ import SwiftUI
 @MainActor
 public final class SwitcherPanel: NSPanel {
     private let hostingView: NSHostingView<SwitcherView>
+    /// Bumped on every show()/hide(). A hide animation's completion only
+    /// orders the panel out if no show() happened while it was fading —
+    /// otherwise a quick reopen (within the fade duration) would be
+    /// hidden by the stale completion handler.
+    private var generation = 0
 
     public init(model: SwitcherViewModel) {
         hostingView = NSHostingView(rootView: SwitcherView(model: model))
@@ -31,6 +36,7 @@ public final class SwitcherPanel: NSPanel {
     /// PRD 4.C: center on the screen containing the mouse cursor.
     /// PRD 2.A: fade-in with a light spring scale.
     public func show() {
+        generation += 1
         hostingView.layoutSubtreeIfNeeded()
         let size = hostingView.fittingSize
         let screen = Self.screenUnderMouse()
@@ -53,11 +59,14 @@ public final class SwitcherPanel: NSPanel {
     }
 
     public func hide() {
+        generation += 1
+        let hideGeneration = generation
         NSAnimationContext.runAnimationGroup({ context in
             context.duration = 0.12
             self.animator().alphaValue = 0
         }, completionHandler: { [weak self] in
-            self?.orderOut(nil)
+            guard let self, self.generation == hideGeneration else { return }
+            self.orderOut(nil)
         })
     }
 

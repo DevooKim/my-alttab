@@ -102,7 +102,7 @@ public final class SwitcherController {
             raw = enumerator.allWindows(blacklist: preferences.blacklistedBundleIDs, mruRank: rank)
             activeShortcut = preferences.globalShortcut
         case .sameApp:
-            raw = enumerator.frontmostAppWindows(mruRank: rank)
+            raw = enumerator.frontmostAppWindows(blacklist: preferences.blacklistedBundleIDs, mruRank: rank)
             activeShortcut = preferences.sameAppShortcut
         }
         let windows = WindowInfo.visibleWindows(raw, includeMinimized: preferences.includeMinimized)

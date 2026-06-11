@@ -26,15 +26,22 @@ public struct WindowEnumerator {
 
     /// Windows of the frontmost app only (Same-App Switch, PRD 2.C).
     public func frontmostAppWindows(
+        blacklist: [String] = [],
         mruRank: (WindowInfo) -> Int? = { _ in nil }
     ) -> [WindowInfo] {
-        guard let app = NSWorkspace.shared.frontmostApplication else { return [] }
+        guard let app = NSWorkspace.shared.frontmostApplication,
+              !Self.isExcluded(app.bundleIdentifier, blacklist: blacklist) else {
+            return []
+        }
         return Self.order(windowsOf(app: app), pidRank: Self.currentPidRank(), mruRank: mruRank)
     }
 
     private func windowsOf(app: NSRunningApplication) -> [WindowInfo] {
         let pid = app.processIdentifier
         let axApp = AXUIElementCreateApplication(pid)
+        // An unresponsive app must not stall the whole list: the default
+        // AX messaging timeout is ~6 seconds, so cap it per app.
+        AXUIElementSetMessagingTimeout(axApp, 0.25)
         var value: CFTypeRef?
         guard AXUIElementCopyAttributeValue(axApp, kAXWindowsAttribute as CFString, &value) == .success,
               let axWindows = value as? [AXUIElement] else {

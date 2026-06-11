@@ -6,6 +6,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     private var settingsWindow: SettingsWindowController?
     private var switcher: SwitcherController?
     private var hotKeys: HotKeyMonitor?
+    private var permissionRetryTimer: Timer?
 
     public func applicationDidFinishLaunching(_ notification: Notification) {
         NSLog("MinimalTab: launched, accessibility trusted=\(AccessibilityPermission.isGranted)")
@@ -36,7 +37,19 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             settings.show()
         }
         hotKeys.onQuickQuit = { switcher.quickQuitSelected() }
-        hotKeys.start()
+        if !hotKeys.start() {
+            // Launched before the permission grant: retry until it lands,
+            // so the user doesn't have to restart the app.
+            permissionRetryTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { timer in
+                guard AccessibilityPermission.isGranted else { return }
+                timer.invalidate()
+                DispatchQueue.main.async { [weak self] in
+                    if self?.hotKeys?.start() == true {
+                        NSLog("MinimalTab: event tap started after late permission grant")
+                    }
+                }
+            }
+        }
         self.hotKeys = hotKeys
     }
 

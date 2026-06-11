@@ -79,12 +79,12 @@ public struct SettingsView: View {
         .onChange(of: launchAtLogin) { LaunchAtLogin.set(enabled: $0) }
     }
 
-    /// Regular running apps not yet excluded.
+    /// Regular running apps not yet excluded (prefix entries respected).
     private func addableApps() -> [String] {
         NSWorkspace.shared.runningApplications
             .filter { $0.activationPolicy == .regular }
             .compactMap(\.bundleIdentifier)
-            .filter { !blacklist.contains($0) }
+            .filter { !WindowEnumerator.isExcluded($0, blacklist: blacklist) }
             .sorted { displayName(for: $0) < displayName(for: $1) }
     }
 

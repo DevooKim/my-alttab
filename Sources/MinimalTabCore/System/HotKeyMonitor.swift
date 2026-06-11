@@ -49,7 +49,10 @@ public final class HotKeyMonitor {
         self.preferences = preferences
     }
 
-    public func start() {
+    /// Returns false when the tap could not be created (no Accessibility
+    /// permission yet) — the caller may retry after the grant.
+    @discardableResult
+    public func start() -> Bool {
         let mask = (1 << CGEventType.keyDown.rawValue) | (1 << CGEventType.flagsChanged.rawValue)
         let callback: CGEventTapCallBack = { _, type, event, refcon in
             let monitor = Unmanaged<HotKeyMonitor>.fromOpaque(refcon!).takeUnretainedValue()
@@ -64,13 +67,14 @@ public final class HotKeyMonitor {
             userInfo: Unmanaged.passUnretained(self).toOpaque()
         ) else {
             NSLog("MinimalTab: failed to create event tap (accessibility permission missing?)")
-            return
+            return false
         }
         eventTap = tap
         runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, tap, 0)
         CFRunLoopAddSource(CFRunLoopGetMain(), runLoopSource, .commonModes)
         CGEvent.tapEnable(tap: tap, enable: true)
         NSLog("MinimalTab: event tap started")
+        return true
     }
 
     public func stop() {
