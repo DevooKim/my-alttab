@@ -1,15 +1,20 @@
 import SwiftUI
 import AppKit
 
-/// Click-to-record shortcut field. Captures the combination one key at a
-/// time: held modifiers show live (e.g. "⌥…"), and the first non-modifier
-/// key pressed while a modifier is held finalizes the shortcut.
+/// Two-part shortcut editor: the modifier is picked from a dropdown and the
+/// trigger key is captured separately with a click-to-record button.
 public struct ShortcutRecorderView: View {
     let label: String
     @Binding var shortcut: KeyboardShortcut
-    @State private var isRecording = false
-    @State private var liveModifiers: UInt64 = 0
+    @State private var isRecordingKey = false
     @State private var monitor: Any?
+
+    private static let modifierOptions: [(symbol: String, rawValue: UInt64)] = [
+        ("⌃ Control", CGEventFlags.maskControl.rawValue),
+        ("⌥ Option", CGEventFlags.maskAlternate.rawValue),
+        ("⇧ Shift", CGEventFlags.maskShift.rawValue),
+        ("⌘ Command", CGEventFlags.maskCommand.rawValue),
+    ]
 
     public init(label: String, shortcut: Binding<KeyboardShortcut>) {
         self.label = label
@@ -20,55 +25,61 @@ public struct ShortcutRecorderView: View {
         HStack {
             Text(label)
             Spacer()
-            Button(action: toggleRecording) {
-                Text(buttonTitle)
-                    .frame(minWidth: 110)
-            }
-        }
-        .onDisappear { stopRecording() }
-    }
-
-    private var buttonTitle: String {
-        guard isRecording else { return shortcut.displayString }
-        let symbols = KeyboardShortcut.modifierSymbols(liveModifiers)
-        return symbols.isEmpty ? "키를 누르세요…" : symbols + "…"
-    }
-
-    private func toggleRecording() {
-        isRecording ? stopRecording() : startRecording()
-    }
-
-    private func startRecording() {
-        isRecording = true
-        liveModifiers = 0
-        ShortcutCapture.isRecording = true
-        monitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .flagsChanged]) { event in
-            switch event.type {
-            case .flagsChanged:
-                // Live preview: show modifiers as the user holds them.
-                liveModifiers = UInt64(event.modifierFlags.rawValue) & KeyboardShortcut.relevantModifierMask
-                return nil
-            case .keyDown:
-                let mods = UInt64(event.modifierFlags.rawValue) & KeyboardShortcut.relevantModifierMask
-                if event.keyCode == 53 && mods == 0 { // bare Escape cancels recording
-                    stopRecording()
-                    return nil
+            Picker("", selection: modifierBinding) {
+                ForEach(Self.modifierOptions, id: \.rawValue) { option in
+                    Text(option.symbol).tag(option.rawValue)
                 }
-                guard mods != 0 else { return nil } // require at least one modifier
-                shortcut = KeyboardShortcut(keyCode: event.keyCode, modifiers: mods)
-                stopRecording()
-                return nil
-            default:
-                return event
             }
+            .labelsHidden()
+            .frame(width: 130)
+
+            Text("+")
+                .foregroundColor(.secondary)
+
+            Button(action: toggleKeyRecording) {
+                Text(isRecordingKey ? "키 입력…" : KeyboardShortcut.keyName(for: shortcut.keyCode))
+                    .frame(minWidth: 60)
+            }
+        }
+        .onDisappear { stopKeyRecording() }
+    }
+
+    private var modifierBinding: Binding<UInt64> {
+        Binding(
+            get: {
+                // A stored combo not in the picker list (e.g. ⌥⌘ from an
+                // old version) falls back to showing Option.
+                Self.modifierOptions.first { $0.rawValue == shortcut.modifiers }?.rawValue
+                    ?? CGEventFlags.maskAlternate.rawValue
+            },
+            set: { shortcut.modifiers = $0 }
+        )
+    }
+
+    private func toggleKeyRecording() {
+        isRecordingKey ? stopKeyRecording() : startKeyRecording()
+    }
+
+    private func startKeyRecording() {
+        isRecordingKey = true
+        ShortcutCapture.isRecording = true
+        monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            if event.keyCode == 53 { // Escape cancels recording
+                stopKeyRecording()
+                return nil
+            }
+            // Any other single key becomes the trigger; modifiers held
+            // during capture are ignored — they come from the picker.
+            shortcut.keyCode = event.keyCode
+            stopKeyRecording()
+            return nil
         }
     }
 
-    private func stopRecording() {
+    private func stopKeyRecording() {
         if let monitor { NSEvent.removeMonitor(monitor) }
         monitor = nil
-        isRecording = false
-        liveModifiers = 0
+        isRecordingKey = false
         ShortcutCapture.isRecording = false
     }
 }
