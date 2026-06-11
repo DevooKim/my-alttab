@@ -1,4 +1,4 @@
-# MinimalTab
+# My AltTab
 
 A fast, text-only window switcher for macOS. No window previews, no screen
 recording permission — just app names and window titles.
@@ -17,7 +17,7 @@ recording permission — just app names and window titles.
 
 ```sh
 make test   # unit tests (swift run minimaltab-tests — XCTest needs Xcode, which isn't required here)
-make app    # builds dist/MinimalTab.app
+make app    # builds "dist/My AltTab.app"
 make run    # build and launch
 ```
 

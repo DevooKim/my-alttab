@@ -9,8 +9,8 @@ cd "$(dirname "$0")/.."
 
 swift build -c release
 
-APP=dist/MinimalTab.app
-rm -rf "$APP"
+APP="dist/My AltTab.app"
+rm -rf "$APP" dist/MinimalTab.app
 mkdir -p "$APP/Contents/MacOS"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
 cp .build/release/MinimalTab "$APP/Contents/MacOS/MinimalTab"

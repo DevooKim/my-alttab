@@ -10,7 +10,7 @@ public final class SettingsWindowController: NSWindowController {
             backing: .buffered,
             defer: false
         )
-        window.title = "MinimalTab 설정"
+        window.title = "My AltTab 설정"
         window.contentViewController = NSHostingController(rootView: SettingsView())
         window.isReleasedWhenClosed = false
         self.init(window: window)

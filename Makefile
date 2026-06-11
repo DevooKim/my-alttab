@@ -10,4 +10,4 @@ app:
 	bash scripts/bundle.sh
 
 run: app
-	open dist/MinimalTab.app
+	open "dist/My AltTab.app"

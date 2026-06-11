@@ -10,7 +10,7 @@ public final class StatusBarController {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         statusItem.button?.image = NSImage(
             systemSymbolName: "rectangle.stack",
-            accessibilityDescription: "MinimalTab"
+            accessibilityDescription: "My AltTab"
         )
 
         let menu = NSMenu()
@@ -18,7 +18,7 @@ public final class StatusBarController {
         settingsItem.target = self
         menu.addItem(settingsItem)
         menu.addItem(.separator())
-        menu.addItem(NSMenuItem(title: "Quit MinimalTab", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        menu.addItem(NSMenuItem(title: "Quit My AltTab", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         statusItem.menu = menu
     }
 
