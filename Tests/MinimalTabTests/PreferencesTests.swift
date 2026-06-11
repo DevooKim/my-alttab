@@ -50,5 +50,23 @@ func runPreferencesTests() {
     expectEqual(Preferences(defaults: defaults).blacklistedBundleIDs, ["com.example.noisy"],
                 "blacklist persists")
 
+    // UI appearance settings
+    expectEqual(prefs.listSize, .medium, "list size defaults to medium")
+    prefs.listSize = .large
+    expectEqual(Preferences(defaults: defaults).listSize, .large, "list size persists")
+
+    expectEqual(prefs.highlightStyle, .fill, "highlight style defaults to fill")
+    prefs.highlightStyle = .border
+    expectEqual(Preferences(defaults: defaults).highlightStyle, .border, "highlight style persists")
+
+    defaults.set("garbage", forKey: Preferences.Key.listSize)
+    expectEqual(prefs.listSize, .medium, "corrupt list size falls back to medium")
+
+    // Sizes scale monotonically
+    expect(ListSize.small.panelWidth < ListSize.medium.panelWidth
+           && ListSize.medium.panelWidth < ListSize.large.panelWidth,
+           "panel width grows with size")
+    expect(ListSize.small.fontSize < ListSize.large.fontSize, "font grows with size")
+
     defaults.removePersistentDomain(forName: suite)
 }

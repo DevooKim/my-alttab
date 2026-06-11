@@ -12,6 +12,8 @@ public final class Preferences {
         public static let quickCloseKey = "quickCloseKey"
         public static let quickQuitKey = "quickQuitKey"
         public static let blacklistedBundleIDs = "blacklistedBundleIDs"
+        public static let listSize = "listSize"
+        public static let highlightStyle = "highlightStyle"
     }
 
     public static let shared = Preferences()
@@ -81,6 +83,19 @@ public final class Preferences {
     public var quickQuitKey: UInt16 {
         get { (defaults.object(forKey: Key.quickQuitKey) as? Int).map(UInt16.init) ?? 12 }
         set { defaults.set(Int(newValue), forKey: Key.quickQuitKey) }
+    }
+
+    /// Switcher list size (UI tab). Stored as the enum's raw string so
+    /// SwiftUI @AppStorage can bind to the same key.
+    public var listSize: ListSize {
+        get { defaults.string(forKey: Key.listSize).flatMap(ListSize.init(rawValue:)) ?? .medium }
+        set { defaults.set(newValue.rawValue, forKey: Key.listSize) }
+    }
+
+    /// Selected-row highlight style (UI tab).
+    public var highlightStyle: HighlightStyle {
+        get { defaults.string(forKey: Key.highlightStyle).flatMap(HighlightStyle.init(rawValue:)) ?? .fill }
+        set { defaults.set(newValue.rawValue, forKey: Key.highlightStyle) }
     }
 
     /// Apps whose windows never appear in the switcher.

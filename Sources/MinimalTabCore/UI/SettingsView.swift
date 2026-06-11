@@ -13,9 +13,44 @@ public struct SettingsView: View {
     @State private var blacklist = Preferences.shared.blacklistedBundleIDs
     @State private var launchAtLogin = LaunchAtLogin.isEnabled
 
+    @AppStorage(Preferences.Key.listSize) private var listSizeRaw = ListSize.medium.rawValue
+    @AppStorage(Preferences.Key.highlightStyle) private var highlightStyleRaw = HighlightStyle.fill.rawValue
+
     public init() {}
 
     public var body: some View {
+        TabView {
+            generalTab
+                .tabItem { Label("일반", systemImage: "gearshape") }
+            uiTab
+                .tabItem { Label("UI", systemImage: "paintbrush") }
+        }
+        .frame(width: 460)
+        .padding(.top, 8)
+    }
+
+    private var uiTab: some View {
+        Form {
+            Section("전환 목록") {
+                Picker("목록 크기", selection: $listSizeRaw) {
+                    ForEach(ListSize.allCases, id: \.rawValue) { size in
+                        Text(size.label).tag(size.rawValue)
+                    }
+                }
+                .pickerStyle(.segmented)
+                Picker("선택 표시 스타일", selection: $highlightStyleRaw) {
+                    ForEach(HighlightStyle.allCases, id: \.rawValue) { style in
+                        Text(style.label).tag(style.rawValue)
+                    }
+                }
+                .pickerStyle(.segmented)
+            }
+        }
+        .formStyle(.grouped)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private var generalTab: some View {
         Form {
             Section("단축키") {
                 ShortcutRecorderView(label: "전체 윈도우 전환 (Global Switch)", shortcut: $globalShortcut)
@@ -67,7 +102,6 @@ public struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 460)
         .fixedSize(horizontal: false, vertical: true)
         .onChange(of: globalShortcut) { Preferences.shared.globalShortcut = $0 }
         .onChange(of: sameAppShortcut) { Preferences.shared.sameAppShortcut = $0 }

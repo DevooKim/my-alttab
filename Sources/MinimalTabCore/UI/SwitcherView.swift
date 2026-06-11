@@ -26,17 +26,25 @@ struct VisualEffectBackground: NSViewRepresentable {
 
 public struct SwitcherView: View {
     @ObservedObject var model: SwitcherViewModel
+    @AppStorage(Preferences.Key.listSize) private var listSizeRaw = ListSize.medium.rawValue
+    @AppStorage(Preferences.Key.highlightStyle) private var highlightStyleRaw = HighlightStyle.fill.rawValue
 
     public init(model: SwitcherViewModel) {
         self.model = model
     }
+
+    private var listSize: ListSize { ListSize(rawValue: listSizeRaw) ?? .medium }
+    private var highlightStyle: HighlightStyle { HighlightStyle(rawValue: highlightStyleRaw) ?? .fill }
 
     public var body: some View {
         ScrollViewReader { proxy in
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 2) {
                     ForEach(Array(model.windows.enumerated()), id: \.element.id) { index, window in
-                        SwitcherRow(window: window, isSelected: index == model.selectedIndex)
+                        SwitcherRow(window: window,
+                                    isSelected: index == model.selectedIndex,
+                                    size: listSize,
+                                    highlight: highlightStyle)
                             .id(index)
                             .onTapGesture { model.onRowClicked?(index) }
                     }
@@ -49,7 +57,7 @@ public struct SwitcherView: View {
                 }
             }
         }
-        .frame(width: 440)
+        .frame(width: listSize.panelWidth)
         .frame(maxHeight: 480)
         .background(VisualEffectBackground())
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
@@ -63,16 +71,18 @@ public struct SwitcherView: View {
 private struct SwitcherRow: View {
     let window: WindowInfo
     let isSelected: Bool
+    let size: ListSize
+    let highlight: HighlightStyle
 
     var body: some View {
         HStack(spacing: 10) {
             if let icon = window.appIcon {
                 Image(nsImage: icon)
                     .resizable()
-                    .frame(width: 20, height: 20)
+                    .frame(width: size.iconSize, height: size.iconSize)
             } else {
                 Image(systemName: "macwindow")
-                    .frame(width: 20, height: 20)
+                    .frame(width: size.iconSize, height: size.iconSize)
             }
             // PRD 2.B: [icon] + [bold app name] - [regular window title]
             Text(window.appName).fontWeight(.bold)
@@ -80,19 +90,29 @@ private struct SwitcherRow: View {
                 + Text(window.displayTitle)
             Spacer(minLength: 0)
         }
-        .font(.system(size: 13))
+        .font(.system(size: size.fontSize))
         .lineLimit(1)
         .truncationMode(.middle)
         // PRD 4.A: minimized items at 50% text opacity
         .opacity(window.isMinimized ? 0.5 : 1.0)
         .padding(.horizontal, 12)
-        .padding(.vertical, 7)
-        .background(
-            // PRD 2.A: rounded accent-color highlight on selection
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(isSelected ? Color.accentColor.opacity(0.85) : Color.clear)
-        )
-        .foregroundColor(isSelected ? .white : .primary)
+        .padding(.vertical, size.rowVerticalPadding)
+        .background(selectionBackground)
+        .foregroundColor(isSelected && highlight == .fill ? .white : .primary)
         .contentShape(Rectangle())
+    }
+
+    @ViewBuilder
+    private var selectionBackground: some View {
+        // PRD 2.A: rounded accent-color highlight on selection
+        let shape = RoundedRectangle(cornerRadius: 8, style: .continuous)
+        switch (isSelected, highlight) {
+        case (false, _):
+            Color.clear
+        case (true, .fill):
+            shape.fill(Color.accentColor.opacity(0.85))
+        case (true, .border):
+            shape.strokeBorder(Color.accentColor, lineWidth: 2)
+        }
     }
 }
