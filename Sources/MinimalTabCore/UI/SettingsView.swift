@@ -24,9 +24,35 @@ public struct SettingsView: View {
                 .tabItem { Label("일반", systemImage: "gearshape") }
             uiTab
                 .tabItem { Label("UI", systemImage: "paintbrush") }
+            aboutTab
+                .tabItem { Label("정보", systemImage: "info.circle") }
         }
         .frame(width: 460)
         .padding(.top, 8)
+    }
+
+    private var aboutTab: some View {
+        VStack(spacing: 10) {
+            Image(nsImage: NSApp.applicationIconImage)
+                .resizable()
+                .frame(width: 80, height: 80)
+            Text("My AltTab")
+                .font(.title2.bold())
+            Text("버전 \(Self.bundleString("CFBundleShortVersionString")) (빌드 \(Self.bundleString("CFBundleVersion")))")
+                .foregroundColor(.secondary)
+            Link("github.com/DevooKim/my-alttab",
+                 destination: URL(string: "https://github.com/DevooKim/my-alttab")!)
+            Text(Self.bundleString("NSHumanReadableCopyright"))
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 32)
+    }
+
+    /// Info.plist values are absent when running unbundled (`swift run`).
+    private static func bundleString(_ key: String) -> String {
+        Bundle.main.object(forInfoDictionaryKey: key) as? String ?? "dev"
     }
 
     private var uiTab: some View {
