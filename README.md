@@ -9,6 +9,16 @@ recording permission — just app names and window titles.
 - **Escape** — cancel
 - Shortcuts are configurable from the menu bar icon → Settings…
 
+## Install
+
+1. Download the latest `My-AltTab-vX.Y.Z.zip` from [Releases](../../releases) and unzip it.
+2. Move `My AltTab.app` to your Applications folder and open it.
+3. **First launch:** macOS will block the app (it is not notarized). Go to
+   System Settings > Privacy & Security and click **"Open Anyway"**, then
+   confirm.
+4. Grant Accessibility permission when prompted (System Settings >
+   Privacy & Security > Accessibility) and relaunch the app.
+
 ## Requirements
 - macOS 13+
 - Accessibility permission (System Settings > Privacy & Security > Accessibility)
