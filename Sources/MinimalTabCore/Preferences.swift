@@ -18,9 +18,29 @@ public final class Preferences {
 
     private let defaults: UserDefaults
 
+    /// Default exclusions, adopted from AltTab (lwouis/alt-tab-macos):
+    /// remote-desktop/VM viewers and background hosts whose windows are
+    /// noise in a switcher. Entries ending in "." match by prefix.
+    public static let defaultBlacklist: [String] = [
+        "com.McAfee.McAfeeSafariHost",
+        "com.apple.ScreenSharing",
+        "com.microsoft.rdc.macos",
+        "com.teamviewer.TeamViewer",
+        "org.virtualbox.app.VirtualBoxVM",
+        "com.parallels.",
+        "com.citrix.XenAppViewer",
+        "com.citrix.receiver.icaviewer.mac",
+        "com.nicesoftware.dcvviewer",
+        "com.vmware.fusion",
+        "com.utmapp.UTM",
+    ]
+
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
-        defaults.register(defaults: [Key.includeMinimized: true])
+        defaults.register(defaults: [
+            Key.includeMinimized: true,
+            Key.blacklistedBundleIDs: Self.defaultBlacklist,
+        ])
     }
 
     public var includeMinimized: Bool {

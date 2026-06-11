@@ -18,7 +18,7 @@ public struct WindowEnumerator {
     ) -> [WindowInfo] {
         var windows: [WindowInfo] = []
         for app in NSWorkspace.shared.runningApplications where app.activationPolicy == .regular {
-            if let bundleID = app.bundleIdentifier, blacklist.contains(bundleID) { continue }
+            if Self.isExcluded(app.bundleIdentifier, blacklist: blacklist) { continue }
             windows.append(contentsOf: windowsOf(app: app))
         }
         return Self.order(windows, pidRank: Self.currentPidRank(), mruRank: mruRank)
@@ -74,6 +74,16 @@ public struct WindowEnumerator {
             return false
         }
         return (value as? Bool) ?? false
+    }
+
+    /// Blacklist matching: exact bundle ID, or prefix when the entry ends
+    /// with "." (AltTab convention, e.g. "com.parallels." matches every
+    /// Parallels app).
+    public static func isExcluded(_ bundleID: String?, blacklist: [String]) -> Bool {
+        guard let bundleID else { return false }
+        return blacklist.contains { entry in
+            entry.hasSuffix(".") ? bundleID.hasPrefix(entry) : bundleID == entry
+        }
     }
 
     /// Front-to-back rank per PID from the on-screen window list. Reads

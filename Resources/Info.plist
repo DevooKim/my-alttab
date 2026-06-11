@@ -6,6 +6,8 @@
 	<string>My AltTab</string>
 	<key>CFBundleExecutable</key>
 	<string>MinimalTab</string>
+	<key>CFBundleIconFile</key>
+	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
 	<string>io.goorm.minimaltab</string>
 	<key>CFBundleName</key>

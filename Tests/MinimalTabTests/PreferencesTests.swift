@@ -41,8 +41,13 @@ func runPreferencesTests() {
     prefs.reverseKey = 126 // up arrow
     expectEqual(Preferences(defaults: defaults).reverseKey, 126, "reverse key persists")
 
-    // Blacklist defaults to empty and persists
-    expectEqual(prefs.blacklistedBundleIDs, [], "blacklist defaults to empty")
+    // Blacklist defaults to AltTab's exclusion list and persists overrides
+    expectEqual(prefs.blacklistedBundleIDs, Preferences.defaultBlacklist,
+                "blacklist defaults to AltTab exclusions")
+    expect(Preferences.defaultBlacklist.contains("com.McAfee.McAfeeSafariHost"),
+           "default blacklist includes McAfee host")
+    expect(Preferences.defaultBlacklist.contains("com.parallels."),
+           "default blacklist includes Parallels prefix")
     prefs.blacklistedBundleIDs = ["com.example.noisy"]
     expectEqual(Preferences(defaults: defaults).blacklistedBundleIDs, ["com.example.noisy"],
                 "blacklist persists")

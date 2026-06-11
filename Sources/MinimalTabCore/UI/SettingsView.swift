@@ -43,10 +43,15 @@ public struct SettingsView: View {
                         }
                     }
                 }
-                Menu("실행 중인 앱에서 추가…") {
-                    ForEach(addableApps(), id: \.self) { bundleID in
-                        Button(displayName(for: bundleID)) { blacklist.append(bundleID) }
+                HStack {
+                    Menu("실행 중인 앱에서 추가…") {
+                        ForEach(addableApps(), id: \.self) { bundleID in
+                            Button(displayName(for: bundleID)) { blacklist.append(bundleID) }
+                        }
                     }
+                    Spacer()
+                    Button("기본값 복원") { blacklist = Preferences.defaultBlacklist }
+                        .disabled(blacklist == Preferences.defaultBlacklist)
                 }
             }
             Section("일반") {
@@ -75,8 +80,26 @@ public struct SettingsView: View {
             .sorted { displayName(for: $0) < displayName(for: $1) }
     }
 
+    /// Friendly names for the default exclusions, which are usually not
+    /// running and therefore can't be resolved via NSWorkspace.
+    private static let knownNames: [String: String] = [
+        "com.McAfee.McAfeeSafariHost": "McAfee Safari Host",
+        "com.apple.ScreenSharing": "화면 공유 (Screen Sharing)",
+        "com.microsoft.rdc.macos": "Microsoft Remote Desktop",
+        "com.teamviewer.TeamViewer": "TeamViewer",
+        "org.virtualbox.app.VirtualBoxVM": "VirtualBox VM",
+        "com.parallels.": "Parallels (전체)",
+        "com.citrix.XenAppViewer": "Citrix XenApp Viewer",
+        "com.citrix.receiver.icaviewer.mac": "Citrix Receiver",
+        "com.nicesoftware.dcvviewer": "NICE DCV Viewer",
+        "com.vmware.fusion": "VMware Fusion",
+        "com.utmapp.UTM": "UTM",
+    ]
+
     private func displayName(for bundleID: String) -> String {
         NSWorkspace.shared.runningApplications
-            .first { $0.bundleIdentifier == bundleID }?.localizedName ?? bundleID
+            .first { $0.bundleIdentifier == bundleID }?.localizedName
+            ?? Self.knownNames[bundleID]
+            ?? bundleID
     }
 }

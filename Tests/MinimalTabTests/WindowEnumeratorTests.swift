@@ -65,4 +65,17 @@ func runWindowEnumeratorTests() {
     )
     expectEqual(minSorted.map(\.title), ["plain", "min"],
                 "minimized windows stay last even when recently used")
+
+    // Blacklist matching: exact IDs and prefix entries (trailing-dot style)
+    let blacklist = ["com.vmware.fusion", "com.parallels."]
+    expect(WindowEnumerator.isExcluded("com.vmware.fusion", blacklist: blacklist),
+           "exact bundle ID is excluded")
+    expect(WindowEnumerator.isExcluded("com.parallels.desktop", blacklist: blacklist),
+           "prefix entry matches by prefix")
+    expect(!WindowEnumerator.isExcluded("com.vmware.fusionx", blacklist: blacklist),
+           "longer ID is not an exact-entry match")
+    expect(!WindowEnumerator.isExcluded("com.apple.Safari", blacklist: blacklist),
+           "unrelated app is not excluded")
+    expect(!WindowEnumerator.isExcluded(nil, blacklist: blacklist),
+           "missing bundle ID is never excluded")
 }
