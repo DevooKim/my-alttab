@@ -1,6 +1,6 @@
 #!/bin/bash
 # Assembles dist/MinimalTab.app from the SPM release binary.
-# Signs with the "MinimalTab Dev" self-signed identity when present, so the
+# Signs with the "My AltTab Dev" self-signed identity when present, so the
 # code signature (and therefore the TCC Accessibility grant) stays stable
 # across rebuilds. Falls back to ad-hoc signing, which requires re-granting
 # permission after every build.
@@ -16,7 +16,7 @@ cp Resources/Info.plist "$APP/Contents/Info.plist"
 cp Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 cp .build/release/MinimalTab "$APP/Contents/MacOS/MinimalTab"
 
-IDENTITY="MinimalTab Dev"
+IDENTITY="My AltTab Dev"
 if security find-identity -v -p codesigning | grep -q "$IDENTITY"; then
     codesign --force --sign "$IDENTITY" "$APP"
 else

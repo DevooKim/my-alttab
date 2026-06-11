@@ -44,6 +44,6 @@ make run      # 빌드 후 실행
 make release  # 배포용 zip 생성
 ```
 
-참고: 로컬 빌드는 자체 서명 인증서("MinimalTab Dev")로 서명되므로, 인증서당
+참고: 로컬 빌드는 자체 서명 인증서("My AltTab Dev")로 서명되므로, 인증서당
 한 번 손쉬운 사용 권한을 부여해야 합니다. 수동 검증 체크리스트는
 [docs/smoke-test.md](docs/smoke-test.md)를 참고하세요.

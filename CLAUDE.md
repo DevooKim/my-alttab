@@ -37,7 +37,7 @@ Event flow: `HotKeyMonitor`'s CGEventTap (main run loop) fires closures wired in
 ## Critical constraints
 
 - **Never read `kCGWindowName`** — it silently requires Screen Recording permission, which this app must never request. Window titles come from AX (`kAXTitleAttribute`); `CGWindowListCopyWindowInfo` is used only for PID z-ordering (permission-free).
-- **Do not change `CFBundleIdentifier` (`io.goorm.minimaltab`) or the signing identity ("MinimalTab Dev", a self-signed cert in the login keychain).** TCC ties the Accessibility grant to bundle ID + certificate; changing either forces users to re-grant permission. `scripts/bundle.sh` falls back to ad-hoc signing if the identity is missing (then permission must be re-granted every build).
+- **Do not change `CFBundleIdentifier` (`io.goorm.minimaltab`) or the signing identity ("My AltTab Dev", a self-signed cert in the login keychain).** TCC ties the Accessibility grant to bundle ID + certificate; changing either forces users to re-grant permission. `scripts/bundle.sh` falls back to ad-hoc signing if the identity is missing (then permission must be re-granted every build).
 - **Modifier keys (Shift, Control, …) never produce keyDown events** — only `flagsChanged`. Any "press a key" feature must handle both paths (see `KeyboardShortcut.modifierFlag(for:)` and the dual handling in `HotKeyMonitor`/`SingleKeyRecorderView`).
 - `ShortcutCapture.isRecording` suspends the event tap's keyDown matching while a settings recorder is active — without it the tap swallows the very keys being recorded.
 - The switcher panel must stay non-activating (`canBecomeKey` false); stealing focus mid-session breaks the hold-modifier interaction.

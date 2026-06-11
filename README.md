@@ -47,6 +47,6 @@ make release  # builds the distributable zip
 ```
 
 Note: locally built bundles are signed with a self-signed identity
-("MinimalTab Dev"), so Accessibility permission must be granted once per
+("My AltTab Dev"), so Accessibility permission must be granted once per
 identity. See [docs/smoke-test.md](docs/smoke-test.md) for the manual
 verification checklist.
