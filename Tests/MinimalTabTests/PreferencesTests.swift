@@ -29,6 +29,11 @@ func runPreferencesTests() {
     prefs.quickCloseKey = 7 // X
     expectEqual(Preferences(defaults: defaults).quickCloseKey, 7, "quick close key persists")
 
+    // Reverse key defaults to left arrow and persists
+    expectEqual(prefs.reverseKey, 123, "reverse key defaults to left arrow")
+    prefs.reverseKey = 126 // up arrow
+    expectEqual(Preferences(defaults: defaults).reverseKey, 126, "reverse key persists")
+
     // Blacklist defaults to empty and persists
     expectEqual(prefs.blacklistedBundleIDs, [], "blacklist defaults to empty")
     prefs.blacklistedBundleIDs = ["com.example.noisy"]

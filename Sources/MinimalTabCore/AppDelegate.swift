@@ -27,6 +27,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         hotKeys.isSessionActive = { Thread.isMainThread ? switcher.isActive : false }
         hotKeys.onTrigger = { mode in switcher.handleTrigger(mode: mode) }
         hotKeys.onReverseTrigger = { mode in switcher.handleReverseTrigger(mode: mode) }
+        hotKeys.onReverseKey = { switcher.retreatSelection() }
         hotKeys.onFlagsChanged = { flags in switcher.handleFlagsChanged(flags) }
         hotKeys.onCancel = { switcher.cancel() }
         hotKeys.onQuickClose = { switcher.quickCloseSelected() }

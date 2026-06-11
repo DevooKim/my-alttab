@@ -7,6 +7,7 @@ public final class Preferences {
         public static let includeMinimized = "includeMinimized"
         public static let globalShortcut = "globalShortcut"
         public static let sameAppShortcut = "sameAppShortcut"
+        public static let reverseKey = "reverseKey"
         public static let quickCloseKey = "quickCloseKey"
         public static let quickQuitKey = "quickQuitKey"
         public static let blacklistedBundleIDs = "blacklistedBundleIDs"
@@ -34,6 +35,13 @@ public final class Preferences {
     public var sameAppShortcut: KeyboardShortcut {
         get { readShortcut(Key.sameAppShortcut) ?? .sameAppDefault }
         set { writeShortcut(newValue, key: Key.sameAppShortcut) }
+    }
+
+    /// Moves the selection backward while the list is open.
+    /// Default ← (keycode 123).
+    public var reverseKey: UInt16 {
+        get { (defaults.object(forKey: Key.reverseKey) as? Int).map(UInt16.init) ?? 123 }
+        set { defaults.set(Int(newValue), forKey: Key.reverseKey) }
     }
 
     /// Quick Action: close the selected window. Default W (keycode 13).

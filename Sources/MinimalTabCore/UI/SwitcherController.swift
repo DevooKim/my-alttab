@@ -48,6 +48,13 @@ public final class SwitcherController {
         }
     }
 
+    /// Single reverse key while the list is open: move backward one step.
+    public func retreatSelection() {
+        guard session != nil else { return }
+        session?.retreat()
+        syncViewModel()
+    }
+
     /// Quick Action: close the selected window without leaving the list.
     public func quickCloseSelected() {
         guard let selected = session?.selectedWindow else { return }

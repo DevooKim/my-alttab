@@ -23,6 +23,8 @@ public final class HotKeyMonitor {
     /// Fired when the trigger is pressed with Shift added — moves the
     /// selection backward (Alt+Shift+Tab convention).
     public var onReverseTrigger: ((SwitcherMode) -> Void)?
+    /// Single configurable key during an active session: move backward.
+    public var onReverseKey: (() -> Void)?
     /// Quick Action during an active session: close the selected window.
     public var onQuickClose: (() -> Void)?
     /// Quick Action during an active session: quit the selected app.
@@ -114,6 +116,9 @@ public final class HotKeyMonitor {
                 switch keyCode {
                 case 53: // Escape
                     DispatchQueue.main.async { self.onCancel?() }
+                    return nil
+                case Int64(preferences.reverseKey):
+                    DispatchQueue.main.async { self.onReverseKey?() }
                     return nil
                 case Int64(preferences.quickCloseKey):
                     DispatchQueue.main.async { self.onQuickClose?() }
