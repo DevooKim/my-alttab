@@ -10,6 +10,8 @@
 
 **Deployment target:** macOS 13+ (required by `SMAppService`).
 
+> **Execution note (2026-06-11):** This machine has only Command Line Tools (no Xcode), so XCTest/Swift Testing are unavailable. During execution the test layer was adapted: code lives in a `MinimalTabCore` library target, the app is a thin `MinimalTab` executable, and tests run via an assertion-based runner executable — `swift run minimaltab-tests` (also `make test`). Test *content* matches this plan; only the harness differs.
+
 ---
 
 ## File Structure
