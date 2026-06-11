@@ -1,8 +1,9 @@
 #!/bin/bash
 # Assembles dist/MinimalTab.app from the SPM release binary.
-# Note: ad-hoc signing changes per build, so macOS may require re-granting
-# Accessibility permission after each rebuild (toggle the entry off/on in
-# System Settings > Privacy & Security > Accessibility).
+# Signs with the "MinimalTab Dev" self-signed identity when present, so the
+# code signature (and therefore the TCC Accessibility grant) stays stable
+# across rebuilds. Falls back to ad-hoc signing, which requires re-granting
+# permission after every build.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -13,5 +14,12 @@ rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
 cp .build/release/MinimalTab "$APP/Contents/MacOS/MinimalTab"
-codesign --force --sign - "$APP"
+
+IDENTITY="MinimalTab Dev"
+if security find-identity -v -p codesigning | grep -q "$IDENTITY"; then
+    codesign --force --sign "$IDENTITY" "$APP"
+else
+    echo "warning: '$IDENTITY' identity not found; ad-hoc signing (permission must be re-granted each build)" >&2
+    codesign --force --sign - "$APP"
+fi
 echo "Bundled: $APP"
