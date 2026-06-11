@@ -33,7 +33,19 @@ public struct SingleKeyRecorderView: View {
     private func startRecording() {
         isRecording = true
         ShortcutCapture.isRecording = true
-        monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+        monitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .flagsChanged]) { event in
+            if event.type == .flagsChanged {
+                // Modifier keys (Shift, Control, …) only arrive as
+                // flagsChanged. Capture on press — the key's own flag bit
+                // is set — and ignore the release that follows.
+                guard let mask = KeyboardShortcut.modifierFlag(for: event.keyCode),
+                      UInt64(event.modifierFlags.rawValue) & mask.rawValue != 0 else {
+                    return nil
+                }
+                keyCode = event.keyCode
+                stopRecording()
+                return nil
+            }
             if event.keyCode != 53 { // Escape cancels
                 keyCode = event.keyCode
             }

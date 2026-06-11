@@ -67,9 +67,26 @@ public struct KeyboardShortcut: Codable, Equatable {
         return s
     }
 
+    /// Maps a modifier key's hardware keycode to its event flag. Modifier
+    /// keys never produce keyDown events — pressing one only fires
+    /// flagsChanged — so standalone-modifier bindings (e.g. Shift as the
+    /// reverse key) are recognized by keycode through this mapping.
+    public static func modifierFlag(for keyCode: UInt16) -> CGEventFlags? {
+        switch keyCode {
+        case 56, 60: return .maskShift      // left / right Shift
+        case 58, 61: return .maskAlternate  // left / right Option
+        case 55, 54: return .maskCommand    // left / right Command
+        case 59, 62: return .maskControl    // left / right Control
+        case 63: return .maskSecondaryFn    // fn
+        default: return nil
+        }
+    }
+
     public static func keyName(for keyCode: UInt16) -> String {
         let names: [UInt16: String] = [
             48: "⇥", 50: "`", 49: "Space", 36: "↩", 53: "⎋", 51: "⌫",
+            56: "⇧", 60: "⇧(우)", 58: "⌥", 61: "⌥(우)",
+            55: "⌘", 54: "⌘(우)", 59: "⌃", 62: "⌃(우)", 63: "fn",
             0: "A", 11: "B", 8: "C", 2: "D", 14: "E", 3: "F", 5: "G",
             4: "H", 34: "I", 38: "J", 40: "K", 37: "L", 46: "M", 45: "N",
             31: "O", 35: "P", 12: "Q", 15: "R", 1: "S", 17: "T", 32: "U",

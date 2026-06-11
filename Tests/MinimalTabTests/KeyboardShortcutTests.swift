@@ -48,6 +48,18 @@ func runKeyboardShortcutTests() {
     expect(!s.matchesWithShift(keyCode: 49, flags: [.maskAlternate, .maskShift]),
            "wrong key is not reverse")
 
+    // Modifier keys as standalone keys (e.g. Shift as the reverse key):
+    // keyDown never fires for them, so they are identified by keycode on
+    // flagsChanged via this mapping.
+    expectEqual(KeyboardShortcut.modifierFlag(for: 56), CGEventFlags.maskShift,
+                "left shift maps to shift flag")
+    expectEqual(KeyboardShortcut.modifierFlag(for: 60), CGEventFlags.maskShift,
+                "right shift maps to shift flag")
+    expectEqual(KeyboardShortcut.modifierFlag(for: 59), CGEventFlags.maskControl,
+                "left control maps to control flag")
+    expect(KeyboardShortcut.modifierFlag(for: 48) == nil, "Tab is not a modifier")
+    expectEqual(KeyboardShortcut.keyName(for: 56), "⇧", "left shift display name")
+
     // Live modifier preview while recording one key at a time
     expectEqual(KeyboardShortcut.modifierSymbols(CGEventFlags.maskAlternate.rawValue), "⌥",
                 "modifier symbols for Option alone")

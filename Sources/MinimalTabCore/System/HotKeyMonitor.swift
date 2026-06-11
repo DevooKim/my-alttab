@@ -135,6 +135,27 @@ public final class HotKeyMonitor {
         case .flagsChanged:
             guard isSessionActive() else { return Unmanaged.passUnretained(event) }
             let flags = event.flags
+            // A session key bound to a modifier (e.g. Shift as reverse)
+            // arrives here, not as keyDown. Fire on press only: the
+            // modifier's own flag is set while the key is down. The event
+            // still passes through so other apps see consistent flags, and
+            // the commit check below still runs (the *required* modifier
+            // is unaffected by this extra key).
+            let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
+            if keyCode >= 0, keyCode <= UInt16.max,
+               let mask = KeyboardShortcut.modifierFlag(for: UInt16(keyCode)),
+               flags.contains(mask) {
+                switch UInt16(keyCode) {
+                case preferences.reverseKey:
+                    DispatchQueue.main.async { self.onReverseKey?() }
+                case preferences.quickCloseKey:
+                    DispatchQueue.main.async { self.onQuickClose?() }
+                case preferences.quickQuitKey:
+                    DispatchQueue.main.async { self.onQuickQuit?() }
+                default:
+                    break
+                }
+            }
             DispatchQueue.main.async { self.onFlagsChanged?(flags) }
             return Unmanaged.passUnretained(event)
 
