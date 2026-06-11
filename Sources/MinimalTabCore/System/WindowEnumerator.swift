@@ -21,6 +21,14 @@ public struct WindowEnumerator {
             if Self.isExcluded(app.bundleIdentifier, blacklist: blacklist) { continue }
             windows.append(contentsOf: windowsOf(app: app))
         }
+        // Include our own windows (e.g. the open settings window) — this
+        // app is .accessory, so the loop above skips it. The switcher
+        // panel itself is borderless and fails the standard-window subrole
+        // check, so only real windows like Settings appear.
+        let own = NSRunningApplication.current
+        if !Self.isExcluded(own.bundleIdentifier, blacklist: blacklist) {
+            windows.append(contentsOf: windowsOf(app: own))
+        }
         return Self.order(windows, pidRank: Self.currentPidRank(), mruRank: mruRank)
     }
 
