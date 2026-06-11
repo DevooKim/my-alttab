@@ -14,6 +14,10 @@ public final class StatusBarController {
         )
 
         let menu = NSMenu()
+        let aboutItem = NSMenuItem(title: "My AltTab 정보", action: #selector(showAbout), keyEquivalent: "")
+        aboutItem.target = self
+        menu.addItem(aboutItem)
+        menu.addItem(.separator())
         let settingsItem = NSMenuItem(title: "Settings…", action: #selector(openSettings), keyEquivalent: ",")
         settingsItem.target = self
         menu.addItem(settingsItem)
@@ -24,5 +28,18 @@ public final class StatusBarController {
 
     @objc private func openSettings() {
         onSettings()
+    }
+
+    /// Standard About panel: bundle icon, name, version, and copyright
+    /// come from Info.plist; credits add the GitHub link.
+    @objc private func showAbout() {
+        NSApp.activate(ignoringOtherApps: true)
+        let credits = NSMutableAttributedString(string: "github.com/DevooKim/my-alttab")
+        credits.addAttribute(
+            .link,
+            value: "https://github.com/DevooKim/my-alttab",
+            range: NSRange(location: 0, length: credits.length)
+        )
+        NSApp.orderFrontStandardAboutPanel(options: [.credits: credits])
     }
 }
