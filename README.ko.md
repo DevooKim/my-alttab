@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/icon-master.png" width="128" alt="My AltTab 아이콘">
+</p>
+
 # My AltTab
 
 [English](README.md)

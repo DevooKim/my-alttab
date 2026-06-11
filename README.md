@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/icon-master.png" width="128" alt="My AltTab icon">
+</p>
+
 # My AltTab
 
 [한국어](README.ko.md)
