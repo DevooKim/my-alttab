@@ -36,4 +36,33 @@ func runWindowEnumeratorTests() {
     expectEqual(WindowEnumerator.sortByZOrder(withUnranked, pidRank: [10: 0]).map(\.title),
                 ["front", "hiddenApp"],
                 "unranked pids go after ranked ones")
+
+    // MRU: recent-use rank dominates z-order; unranked windows fall back
+    // to z-order after all MRU-ranked ones.
+    let mruWindows = [
+        makeWindow(pid: 10, title: "old"),
+        makeWindow(pid: 20, title: "current"),
+        makeWindow(pid: 30, title: "previous"),
+    ]
+    let mruRanks = ["current": 0, "previous": 1]
+    let mruSorted = WindowEnumerator.order(
+        mruWindows,
+        pidRank: [10: 0, 20: 1, 30: 2],
+        mruRank: { mruRanks[$0.title] }
+    )
+    expectEqual(mruSorted.map(\.title), ["current", "previous", "old"],
+                "MRU rank dominates z-order")
+
+    // Minimized windows stay last even with an MRU rank
+    let mruMinimized = [
+        makeWindow(pid: 10, title: "min", isMinimized: true),
+        makeWindow(pid: 20, title: "plain"),
+    ]
+    let minSorted = WindowEnumerator.order(
+        mruMinimized,
+        pidRank: [20: 0],
+        mruRank: { $0.title == "min" ? 0 : nil }
+    )
+    expectEqual(minSorted.map(\.title), ["plain", "min"],
+                "minimized windows stay last even when recently used")
 }

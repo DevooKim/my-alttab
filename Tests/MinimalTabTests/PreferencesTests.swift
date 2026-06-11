@@ -23,5 +23,17 @@ func runPreferencesTests() {
     defaults.set(Data([0x00, 0x01]), forKey: Preferences.Key.globalShortcut)
     expectEqual(prefs.globalShortcut, .globalDefault, "corrupt shortcut data falls back to default")
 
+    // Quick Action keys default to W (close) and Q (quit) and persist
+    expectEqual(prefs.quickCloseKey, 13, "quick close defaults to W")
+    expectEqual(prefs.quickQuitKey, 12, "quick quit defaults to Q")
+    prefs.quickCloseKey = 7 // X
+    expectEqual(Preferences(defaults: defaults).quickCloseKey, 7, "quick close key persists")
+
+    // Blacklist defaults to empty and persists
+    expectEqual(prefs.blacklistedBundleIDs, [], "blacklist defaults to empty")
+    prefs.blacklistedBundleIDs = ["com.example.noisy"]
+    expectEqual(Preferences(defaults: defaults).blacklistedBundleIDs, ["com.example.noisy"],
+                "blacklist persists")
+
     defaults.removePersistentDomain(forName: suite)
 }

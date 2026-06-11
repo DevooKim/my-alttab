@@ -36,6 +36,16 @@ public struct KeyboardShortcut: Codable, Equatable {
         return (flags.rawValue & Self.relevantModifierMask) == modifiers
     }
 
+    /// True when the event is this shortcut's key with Shift added on top
+    /// of the required modifiers — moves the selection backward
+    /// (Alt+Shift+Tab convention).
+    public func matchesWithShift(keyCode: Int64, flags: CGEventFlags) -> Bool {
+        guard keyCode == Int64(self.keyCode) else { return false }
+        let expected = modifiers | CGEventFlags.maskShift.rawValue
+        return expected != modifiers
+            && (flags.rawValue & Self.relevantModifierMask) == expected
+    }
+
     /// True while every required modifier is still pressed — used on
     /// flagsChanged events to detect release-to-commit.
     public func modifiersStillHeld(flags: CGEventFlags) -> Bool {

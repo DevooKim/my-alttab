@@ -9,19 +9,27 @@ import ApplicationServices
 public struct WindowEnumerator {
     public init() {}
 
-    /// All windows of all regular apps, front-to-back, minimized last.
-    public func allWindows() -> [WindowInfo] {
+    /// All windows of all regular apps, most-recently-used first
+    /// (z-order fallback for windows never tracked), minimized last.
+    /// Apps in `blacklist` (bundle IDs) are skipped entirely.
+    public func allWindows(
+        blacklist: [String] = [],
+        mruRank: (WindowInfo) -> Int? = { _ in nil }
+    ) -> [WindowInfo] {
         var windows: [WindowInfo] = []
         for app in NSWorkspace.shared.runningApplications where app.activationPolicy == .regular {
+            if let bundleID = app.bundleIdentifier, blacklist.contains(bundleID) { continue }
             windows.append(contentsOf: windowsOf(app: app))
         }
-        return Self.sortByZOrder(windows, pidRank: Self.currentPidRank())
+        return Self.order(windows, pidRank: Self.currentPidRank(), mruRank: mruRank)
     }
 
     /// Windows of the frontmost app only (Same-App Switch, PRD 2.C).
-    public func frontmostAppWindows() -> [WindowInfo] {
+    public func frontmostAppWindows(
+        mruRank: (WindowInfo) -> Int? = { _ in nil }
+    ) -> [WindowInfo] {
         guard let app = NSWorkspace.shared.frontmostApplication else { return [] }
-        return Self.sortByZOrder(windowsOf(app: app), pidRank: Self.currentPidRank())
+        return Self.order(windowsOf(app: app), pidRank: Self.currentPidRank(), mruRank: mruRank)
     }
 
     private func windowsOf(app: NSRunningApplication) -> [WindowInfo] {
@@ -88,15 +96,26 @@ public struct WindowEnumerator {
         return rank
     }
 
-    /// Pure, unit-tested ordering: apps in z-order (unranked apps last,
-    /// e.g. hidden apps with no on-screen windows), AX order kept within
-    /// an app, minimized windows pushed to the end.
-    public static func sortByZOrder(_ windows: [WindowInfo], pidRank: [pid_t: Int]) -> [WindowInfo] {
+    /// Pure, unit-tested ordering. Priority: minimized last, then MRU rank
+    /// (most recently used first), then z-order (unranked apps last, e.g.
+    /// hidden apps with no on-screen windows), AX order kept within an app.
+    public static func order(
+        _ windows: [WindowInfo],
+        pidRank: [pid_t: Int],
+        mruRank: (WindowInfo) -> Int? = { _ in nil }
+    ) -> [WindowInfo] {
         let sorted = windows.enumerated().sorted { a, b in
-            let keyA = (a.element.isMinimized ? 1 : 0, pidRank[a.element.pid] ?? Int.max, a.offset)
-            let keyB = (b.element.isMinimized ? 1 : 0, pidRank[b.element.pid] ?? Int.max, b.offset)
+            let keyA = (a.element.isMinimized ? 1 : 0, mruRank(a.element) ?? Int.max,
+                        pidRank[a.element.pid] ?? Int.max, a.offset)
+            let keyB = (b.element.isMinimized ? 1 : 0, mruRank(b.element) ?? Int.max,
+                        pidRank[b.element.pid] ?? Int.max, b.offset)
             return keyA < keyB
         }
         return sorted.map(\.element)
+    }
+
+    /// Backward-compatible alias: pure z-order without MRU input.
+    public static func sortByZOrder(_ windows: [WindowInfo], pidRank: [pid_t: Int]) -> [WindowInfo] {
+        order(windows, pidRank: pidRank)
     }
 }

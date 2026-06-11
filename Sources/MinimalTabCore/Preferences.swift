@@ -7,6 +7,9 @@ public final class Preferences {
         public static let includeMinimized = "includeMinimized"
         public static let globalShortcut = "globalShortcut"
         public static let sameAppShortcut = "sameAppShortcut"
+        public static let quickCloseKey = "quickCloseKey"
+        public static let quickQuitKey = "quickQuitKey"
+        public static let blacklistedBundleIDs = "blacklistedBundleIDs"
     }
 
     public static let shared = Preferences()
@@ -31,6 +34,24 @@ public final class Preferences {
     public var sameAppShortcut: KeyboardShortcut {
         get { readShortcut(Key.sameAppShortcut) ?? .sameAppDefault }
         set { writeShortcut(newValue, key: Key.sameAppShortcut) }
+    }
+
+    /// Quick Action: close the selected window. Default W (keycode 13).
+    public var quickCloseKey: UInt16 {
+        get { (defaults.object(forKey: Key.quickCloseKey) as? Int).map(UInt16.init) ?? 13 }
+        set { defaults.set(Int(newValue), forKey: Key.quickCloseKey) }
+    }
+
+    /// Quick Action: quit the selected window's app. Default Q (keycode 12).
+    public var quickQuitKey: UInt16 {
+        get { (defaults.object(forKey: Key.quickQuitKey) as? Int).map(UInt16.init) ?? 12 }
+        set { defaults.set(Int(newValue), forKey: Key.quickQuitKey) }
+    }
+
+    /// Apps whose windows never appear in the switcher.
+    public var blacklistedBundleIDs: [String] {
+        get { defaults.stringArray(forKey: Key.blacklistedBundleIDs) ?? [] }
+        set { defaults.set(newValue, forKey: Key.blacklistedBundleIDs) }
     }
 
     private func readShortcut(_ key: String) -> KeyboardShortcut? {

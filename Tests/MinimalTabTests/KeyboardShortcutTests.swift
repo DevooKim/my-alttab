@@ -38,6 +38,16 @@ func runKeyboardShortcutTests() {
     expectEqual(KeyboardShortcut.globalDefault.displayString, "⌥⇥", "display string for Option+Tab")
     expectEqual(custom.displayString, "⌃Space", "display string for Control+Space")
 
+    // Reverse direction: trigger + Shift on top of the required modifiers
+    expect(s.matchesWithShift(keyCode: 48, flags: [.maskAlternate, .maskShift]),
+           "shift+trigger matches reverse")
+    expect(!s.matchesWithShift(keyCode: 48, flags: .maskAlternate),
+           "plain trigger is not reverse")
+    expect(!s.matchesWithShift(keyCode: 48, flags: [.maskAlternate, .maskShift, .maskCommand]),
+           "extra modifier breaks reverse match")
+    expect(!s.matchesWithShift(keyCode: 49, flags: [.maskAlternate, .maskShift]),
+           "wrong key is not reverse")
+
     // Live modifier preview while recording one key at a time
     expectEqual(KeyboardShortcut.modifierSymbols(CGEventFlags.maskAlternate.rawValue), "⌥",
                 "modifier symbols for Option alone")

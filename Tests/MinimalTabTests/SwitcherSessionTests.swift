@@ -46,4 +46,37 @@ func runSwitcherSessionTests() {
     expectEqual(direct.selectedIndex, 3, "select(index:) jumps directly")
     direct.select(index: 99)
     expectEqual(direct.selectedIndex, 3, "out-of-range select is ignored")
+
+    // Quick Actions: removing the selected window keeps the session usable
+    var removal = SwitcherSession(windows: makeWindows(3)) // selected: W1
+    let removed = removal.removeSelected()
+    expectEqual(removed?.title, "W1", "removeSelected returns the removed window")
+    expectEqual(removal.windows.map(\.title), ["W0", "W2"], "removed window leaves the list")
+    expectEqual(removal.selectedWindow?.title, "W2", "selection moves to the next window")
+
+    var removeLast = SwitcherSession(windows: makeWindows(2))
+    removeLast.advance() // wrap to 0
+    removeLast.select(index: 1)
+    _ = removeLast.removeSelected()
+    expectEqual(removeLast.selectedIndex, 0, "removing the last item clamps the index")
+
+    var removeAll = SwitcherSession(windows: makeWindows(1))
+    _ = removeAll.removeSelected()
+    expect(removeAll.selectedWindow == nil, "removing the only window empties the session")
+    expect(removeAll.removeSelected() == nil, "removeSelected on empty returns nil")
+
+    // Quick Actions: quitting an app removes every window of that pid
+    let multi = [
+        WindowInfo(id: UUID(), pid: 1, appName: "A", appIcon: nil, title: "a1",
+                   isMinimized: false, isHidden: false, axElement: nil),
+        WindowInfo(id: UUID(), pid: 2, appName: "B", appIcon: nil, title: "b1",
+                   isMinimized: false, isHidden: false, axElement: nil),
+        WindowInfo(id: UUID(), pid: 1, appName: "A", appIcon: nil, title: "a2",
+                   isMinimized: false, isHidden: false, axElement: nil),
+    ]
+    var quit = SwitcherSession(windows: multi) // selected: b1
+    quit.select(index: 0)
+    quit.removeWindows(pid: 1)
+    expectEqual(quit.windows.map(\.title), ["b1"], "removeWindows(pid:) drops all of that app")
+    expectEqual(quit.selectedIndex, 0, "selection clamps after pid removal")
 }
