@@ -86,7 +86,8 @@ public struct SettingsView: View {
         .onChange(of: showAllSpaces) { on in
             Preferences.shared.showAllSpaces = on
             // Ask for Screen Recording only when turning the feature ON and
-            // it isn't already granted.
+            // it isn't already granted. The prompt polls for the grant and
+            // relaunches the app so the permission takes effect.
             if on && !ScreenRecordingPermission.isGranted {
                 ScreenRecordingPermission.explainAndPrompt()
             }

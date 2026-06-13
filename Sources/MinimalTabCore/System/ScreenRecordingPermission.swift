@@ -20,7 +20,8 @@ enum ScreenRecordingPermission {
     }
 
     /// Alert explaining why the permission is needed and linking to the
-    /// System Settings pane.
+    /// System Settings pane. Once the grant lands (polled), the app
+    /// relaunches itself — Screen Recording only takes effect on restart.
     @MainActor
     static func explainAndPrompt() {
         let alert = NSAlert()
@@ -29,7 +30,7 @@ enum ScreenRecordingPermission {
         다른 Space(데스크탑)에 있는 창의 제목을 읽으려면 화면 기록 권한이 필요합니다. \
         이 권한은 '모든 Space의 창 표시' 기능에만 사용되며, 창 제목 외의 화면 내용은 캡처하지 않습니다.
 
-        시스템 설정 > 개인정보 보호 및 보안 > 화면 기록에서 My AltTab을 허용한 뒤 앱을 다시 실행해 주세요.
+        시스템 설정에서 My AltTab을 허용하면 앱이 자동으로 다시 실행됩니다.
         """
         alert.alertStyle = .informational
         alert.addButton(withTitle: "시스템 설정 열기")
@@ -39,6 +40,38 @@ enum ScreenRecordingPermission {
         if alert.runModal() == .alertFirstButtonReturn {
             let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture")!
             NSWorkspace.shared.open(url)
+            waitForGrantThenRelaunch()
+        }
+    }
+
+    /// Polls until the permission is granted (or the user gives up), then
+    /// relaunches so the new permission takes effect.
+    @MainActor
+    private static func waitForGrantThenRelaunch() {
+        guard !isGranted else { return }
+        var elapsed = 0.0
+        let timer = Timer(timeInterval: 1.0, repeats: true) { timer in
+            elapsed += 1.0
+            if isGranted {
+                timer.invalidate()
+                relaunch()
+            } else if elapsed >= 120 { // give up after 2 minutes
+                timer.invalidate()
+            }
+        }
+        RunLoop.main.add(timer, forMode: .common)
+    }
+
+    /// Launches a fresh instance of the bundle and terminates this one.
+    /// Only works from a real .app bundle (no-op-ish under `swift run`).
+    @MainActor
+    static func relaunch() {
+        let bundleURL = Bundle.main.bundleURL
+        guard bundleURL.pathExtension == "app" else { return }
+        let config = NSWorkspace.OpenConfiguration()
+        config.createsNewApplicationInstance = true
+        NSWorkspace.shared.openApplication(at: bundleURL, configuration: config) { _, _ in
+            DispatchQueue.main.async { NSApp.terminate(nil) }
         }
     }
 }
