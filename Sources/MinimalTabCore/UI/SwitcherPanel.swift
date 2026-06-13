@@ -4,6 +4,14 @@ import SwiftUI
 /// Borderless, non-activating floating panel. Non-activating is essential:
 /// the user is holding a modifier over another app, and focus must not move
 /// until they release it.
+///
+/// Deliberately AppKit, not a SwiftUI `Window` scene. A SwiftUI `Window` is
+/// backed by an `NSWindow`, not an `NSPanel`; the `.nonactivatingPanel` style
+/// mask (and `canBecomeKey == false`) is only honored by `NSPanel`, and there
+/// is no non-activating window API below macOS 15. So a SwiftUI scene cannot
+/// reproduce the focus-not-stealing behavior on the macOS 13 floor — the
+/// SwiftUI-migration spike concluded NO-GO and this stays an NSPanel. The
+/// content (`SwitcherView`) is already SwiftUI, hosted here.
 @MainActor
 public final class SwitcherPanel: NSPanel {
     private let hostingView: NSHostingView<SwitcherView>
