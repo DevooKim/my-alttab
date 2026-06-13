@@ -15,6 +15,7 @@ public final class Preferences {
         public static let listSize = "listSize"
         public static let highlightStyle = "highlightStyle"
         public static let showAllSpaces = "showAllSpaces"
+        public static let hasCompletedOnboarding = "hasCompletedOnboarding"
     }
 
     public static let shared = Preferences()
@@ -68,9 +69,10 @@ public final class Preferences {
     }
 
     /// Moves the selection backward while the list is open.
-    /// Default ← (keycode 123).
+    /// Default ⇧ left Shift (keycode 56) — a modifier held alongside the
+    /// trigger, handled via flagsChanged (see HotKeyMonitor).
     public var reverseKey: UInt16 {
-        get { (defaults.object(forKey: Key.reverseKey) as? Int).map(UInt16.init) ?? 123 }
+        get { (defaults.object(forKey: Key.reverseKey) as? Int).map(UInt16.init) ?? 56 }
         set { defaults.set(Int(newValue), forKey: Key.reverseKey) }
     }
 
@@ -97,6 +99,12 @@ public final class Preferences {
     public var highlightStyle: HighlightStyle {
         get { defaults.string(forKey: Key.highlightStyle).flatMap(HighlightStyle.init(rawValue:)) ?? .fill }
         set { defaults.set(newValue.rawValue, forKey: Key.highlightStyle) }
+    }
+
+    /// True once the user has dismissed the first-run onboarding window.
+    public var hasCompletedOnboarding: Bool {
+        get { defaults.bool(forKey: Key.hasCompletedOnboarding) }
+        set { defaults.set(newValue, forKey: Key.hasCompletedOnboarding) }
     }
 
     /// Show windows from every Space, not just the active one. OFF by

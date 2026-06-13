@@ -30,8 +30,18 @@ public enum AccessibilityPermission {
         alert.addButton(withTitle: "나중에")
 
         if alert.runModal() == .alertFirstButtonReturn {
-            let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!
-            NSWorkspace.shared.open(url)
+            openSystemSettings()
         }
+    }
+
+    /// Registers the app in the Accessibility list and opens that pane in
+    /// System Settings — no alert. Used by the onboarding window's
+    /// "권한 허용" button.
+    @MainActor
+    public static func openSystemSettings() {
+        let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: false] as CFDictionary
+        _ = AXIsProcessTrustedWithOptions(options)
+        let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!
+        NSWorkspace.shared.open(url)
     }
 }

@@ -65,8 +65,10 @@ public final class SwitcherPanel: NSPanel {
             context.duration = 0.12
             self.animator().alphaValue = 0
         }, completionHandler: { [weak self] in
-            guard let self, self.generation == hideGeneration else { return }
-            self.orderOut(nil)
+            MainActor.assumeIsolated {
+                guard let self, self.generation == hideGeneration else { return }
+                self.orderOut(nil)
+            }
         })
     }
 

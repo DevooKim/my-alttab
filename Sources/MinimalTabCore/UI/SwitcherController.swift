@@ -12,6 +12,8 @@ public final class SwitcherController {
 
     private var session: SwitcherSession?
     private var activeShortcut: KeyboardShortcut?
+    /// Auto-dismiss timer for the "no windows" empty state.
+    private var emptyStateTimer: Timer?
 
     public var isActive: Bool { session != nil }
 
@@ -89,6 +91,8 @@ public final class SwitcherController {
 
     public func cancel() {
         guard session != nil else { return }
+        emptyStateTimer?.invalidate()
+        emptyStateTimer = nil
         session = nil
         activeShortcut = nil
         panel.hide()
@@ -111,16 +115,24 @@ public final class SwitcherController {
         }
         let windows = WindowInfo.visibleWindows(raw, includeMinimized: preferences.includeMinimized)
         NSLog("MinimalTab: trigger \(mode), \(raw.count) windows enumerated, \(windows.count) visible")
-        guard !windows.isEmpty else {
-            activeShortcut = nil
-            return
-        }
         session = SwitcherSession(windows: windows)
         syncViewModel()
         panel.show()
+        // Empty state: nothing to commit, so auto-dismiss after a moment
+        // (modifier release / Escape also close it, whichever comes first).
+        emptyStateTimer?.invalidate()
+        if windows.isEmpty {
+            let timer = Timer(timeInterval: 2.0, repeats: false) { [weak self] _ in
+                Task { @MainActor in self?.cancel() }
+            }
+            RunLoop.main.add(timer, forMode: .common)
+            emptyStateTimer = timer
+        }
     }
 
     private func commit() {
+        emptyStateTimer?.invalidate()
+        emptyStateTimer = nil
         let selected = session?.selectedWindow
         session = nil
         activeShortcut = nil

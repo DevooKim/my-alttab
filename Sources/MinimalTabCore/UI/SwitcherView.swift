@@ -37,6 +37,41 @@ public struct SwitcherView: View {
     private var highlightStyle: HighlightStyle { HighlightStyle(rawValue: highlightStyleRaw) ?? .fill }
 
     public var body: some View {
+        content
+        .frame(width: listSize.panelWidth)
+        .frame(maxHeight: 480)
+        .background(VisualEffectBackground())
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .strokeBorder(Color.white.opacity(0.15), lineWidth: 1)
+        )
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        if model.windows.isEmpty {
+            emptyState
+        } else {
+            list
+        }
+    }
+
+    private var emptyState: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "macwindow")
+                .frame(width: listSize.iconSize, height: listSize.iconSize)
+                .foregroundColor(.secondary)
+            Text("전환할 창이 없습니다")
+                .font(.system(size: listSize.fontSize))
+                .foregroundColor(.secondary)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 18)
+        .frame(maxWidth: .infinity)
+    }
+
+    private var list: some View {
         ScrollViewReader { proxy in
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 2) {
@@ -57,14 +92,6 @@ public struct SwitcherView: View {
                 }
             }
         }
-        .frame(width: listSize.panelWidth)
-        .frame(maxHeight: 480)
-        .background(VisualEffectBackground())
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .strokeBorder(Color.white.opacity(0.15), lineWidth: 1)
-        )
     }
 }
 

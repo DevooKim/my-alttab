@@ -7,6 +7,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     private var switcher: SwitcherController?
     private var hotKeys: HotKeyMonitor?
     private var permissionRetryTimer: Timer?
+    private var onboardingWindow: OnboardingWindowController?
 
     public func applicationDidFinishLaunching(_ notification: Notification) {
         NSLog("MinimalTab: launched, accessibility trusted=\(AccessibilityPermission.isGranted)")
@@ -23,8 +24,17 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         settingsWindow = settings
         statusBar = StatusBarController(onSettings: { settings.show() })
 
-        // PRD 4.D: check permission on launch, deep-link to System Settings.
-        AccessibilityPermission.promptIfNeeded()
+        // First run: show onboarding (which handles the permission prompt
+        // inline). Later runs: the usual alert if permission is missing.
+        if Preferences.shared.hasCompletedOnboarding {
+            AccessibilityPermission.promptIfNeeded()
+        } else {
+            let onboarding = OnboardingWindowController(onFinish: {
+                Preferences.shared.hasCompletedOnboarding = true
+            })
+            onboardingWindow = onboarding
+            onboarding.show()
+        }
 
         let switcher = SwitcherController()
         self.switcher = switcher

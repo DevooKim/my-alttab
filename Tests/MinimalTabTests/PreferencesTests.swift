@@ -34,8 +34,8 @@ func runPreferencesTests() {
     prefs.settingsKey = 1 // S
     expectEqual(Preferences(defaults: defaults).settingsKey, 1, "settings key persists")
 
-    // Reverse key defaults to left arrow and persists
-    expectEqual(prefs.reverseKey, 123, "reverse key defaults to left arrow")
+    // Reverse key defaults to left Shift and persists
+    expectEqual(prefs.reverseKey, 56, "reverse key defaults to left shift")
     prefs.reverseKey = 126 // up arrow
     expectEqual(Preferences(defaults: defaults).reverseKey, 126, "reverse key persists")
 
@@ -49,6 +49,11 @@ func runPreferencesTests() {
     prefs.blacklistedBundleIDs = ["com.example.noisy"]
     expectEqual(Preferences(defaults: defaults).blacklistedBundleIDs, ["com.example.noisy"],
                 "blacklist persists")
+
+    // Onboarding completion flag
+    expect(!prefs.hasCompletedOnboarding, "onboarding defaults to not completed")
+    prefs.hasCompletedOnboarding = true
+    expect(Preferences(defaults: defaults).hasCompletedOnboarding, "onboarding completion persists")
 
     // UI appearance settings
     expectEqual(prefs.listSize, .medium, "list size defaults to medium")
