@@ -81,6 +81,16 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         false
     }
 
+    /// Re-launching an already-running instance (Finder/Spotlight/Dock open,
+    /// or `open` on the bundle) has no window to surface for a menu-bar app, so
+    /// macOS would do nothing. Open Settings instead, so re-opening the app
+    /// gives the user something actionable. Skips first-run onboarding.
+    public func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows: Bool) -> Bool {
+        guard Preferences.shared.hasCompletedOnboarding, !hasVisibleWindows else { return true }
+        SettingsOpener.open()
+        return true
+    }
+
     private static func makeMainMenu() -> NSMenu {
         let main = NSMenu()
 
