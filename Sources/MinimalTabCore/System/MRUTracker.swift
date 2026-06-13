@@ -26,6 +26,18 @@ public final class MRUTracker {
         return elements.firstIndex { CFEqual($0, element) }
     }
 
+    /// An immutable snapshot of the current MRU order, safe to use for
+    /// ranking from a background thread (enumeration runs off-main, but the
+    /// tracker is @MainActor). `CFEqual` is thread-safe; AXUIElements are
+    /// immutable references, so reading them off-main is fine.
+    public func rankSnapshot() -> @Sendable (AXUIElement?) -> Int? {
+        let snapshot = elements
+        return { element in
+            guard let element else { return nil }
+            return snapshot.firstIndex { CFEqual($0, element) }
+        }
+    }
+
     /// Records the focused window of whichever app the user activates, so
     /// ordinary clicking around (not just switcher use) builds MRU history.
     public func startObservingActivations() {

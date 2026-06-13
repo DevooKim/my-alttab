@@ -56,6 +56,12 @@ public struct SwitcherView: View {
 
     private let panelShape = RoundedRectangle(cornerRadius: 16, style: .continuous)
 
+    // Localized strings the rows need. Resolved once per render pass here
+    // (each L() reads UserDefaults + does a bundle lookup) rather than three
+    // times inside every SwitcherRow body.
+    private var untitled: String { L("switcher.untitled") }
+    private var minimizedSuffix: String { L("switcher.minimizedSuffix") }
+
     public var body: some View {
         sizedContent
             .modifier(PanelBackground(shape: panelShape))
@@ -98,7 +104,9 @@ public struct SwitcherView: View {
                         SwitcherRow(window: window,
                                     isSelected: index == model.selectedIndex,
                                     size: listSize,
-                                    highlight: highlightStyle)
+                                    highlight: highlightStyle,
+                                    untitled: untitled,
+                                    minimizedSuffix: minimizedSuffix)
                             .id(index)
                             .onTapGesture { model.onRowClicked?(index) }
                     }
@@ -119,6 +127,8 @@ private struct SwitcherRow: View {
     let isSelected: Bool
     let size: ListSize
     let highlight: HighlightStyle
+    let untitled: String
+    let minimizedSuffix: String
 
     var body: some View {
         HStack(spacing: 10) {
@@ -133,7 +143,7 @@ private struct SwitcherRow: View {
             // PRD 2.B: [icon] + [bold app name] - [regular window title]
             (Text(window.appName).fontWeight(.bold)
                 + Text("  —  ").foregroundColor(.secondary)
-                + Text(window.displayTitle(untitled: L("switcher.untitled"), minimizedSuffix: L("switcher.minimizedSuffix"))))
+                + Text(window.displayTitle(untitled: untitled, minimizedSuffix: minimizedSuffix)))
                 .font(.system(size: size.fontSize))
                 .lineLimit(1)
                 .truncationMode(.middle)

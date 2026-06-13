@@ -18,10 +18,15 @@ public struct WindowEnumerator {
         mruRank: (WindowInfo) -> Int? = { _ in nil }
     ) -> [WindowInfo] {
         let ordinals = SpaceTracker.currentSpaceOrdinals()
+        // One pass over CGS Space membership instead of a per-window
+        // CGSCopySpacesForWindows call (which crosses into the WindowServer
+        // each time). With 30–40 windows open this turns N IPC round-trips
+        // into a handful (one per Space).
+        let spaceByWindowID = SpaceTracker.spaceNumbersByWindowID(ordinals: ordinals)
         var windows: [WindowInfo] = []
         for app in NSWorkspace.shared.runningApplications where app.activationPolicy == .regular {
             if Self.isExcluded(app.bundleIdentifier, blacklist: blacklist) { continue }
-            windows.append(contentsOf: windowsOf(app: app, spaceOrdinals: ordinals))
+            windows.append(contentsOf: windowsOf(app: app, spaceByWindowID: spaceByWindowID))
         }
         // Include our own windows (e.g. the open settings window) — this
         // app is .accessory, so the loop above skips it. The switcher
@@ -29,7 +34,7 @@ public struct WindowEnumerator {
         // check, so only real windows like Settings appear.
         let own = NSRunningApplication.current
         if !Self.isExcluded(own.bundleIdentifier, blacklist: blacklist) {
-            windows.append(contentsOf: windowsOf(app: own, spaceOrdinals: ordinals))
+            windows.append(contentsOf: windowsOf(app: own, spaceByWindowID: spaceByWindowID))
         }
         if showAllSpaces {
             windows.append(contentsOf: inactiveSpaceWindows(
@@ -108,11 +113,12 @@ public struct WindowEnumerator {
             return []
         }
         let ordinals = SpaceTracker.currentSpaceOrdinals()
-        return Self.order(windowsOf(app: app, spaceOrdinals: ordinals),
+        let spaceByWindowID = SpaceTracker.spaceNumbersByWindowID(ordinals: ordinals)
+        return Self.order(windowsOf(app: app, spaceByWindowID: spaceByWindowID),
                           pidRank: Self.currentPidRank(), mruRank: mruRank)
     }
 
-    private func windowsOf(app: NSRunningApplication, spaceOrdinals: [Int: Int]) -> [WindowInfo] {
+    private func windowsOf(app: NSRunningApplication, spaceByWindowID: [CGWindowID: Int]) -> [WindowInfo] {
         let pid = app.processIdentifier
         let axApp = AXUIElementCreateApplication(pid)
         // An unresponsive app must not stall the whole list: the default
@@ -139,7 +145,7 @@ public struct WindowEnumerator {
                 title: stringAttribute(axWindow, kAXTitleAttribute) ?? "",
                 isMinimized: boolAttribute(axWindow, kAXMinimizedAttribute),
                 isHidden: app.isHidden,
-                spaceNumber: SpaceTracker.spaceNumber(forWindowID: wid, ordinals: spaceOrdinals),
+                spaceNumber: wid != 0 ? spaceByWindowID[wid] : nil,
                 windowID: wid,
                 axElement: axWindow
             )
@@ -200,14 +206,15 @@ public struct WindowEnumerator {
         pidRank: [pid_t: Int],
         mruRank: (WindowInfo) -> Int? = { _ in nil }
     ) -> [WindowInfo] {
-        let sorted = windows.enumerated().sorted { a, b in
-            let keyA = (a.element.isMinimized ? 1 : 0, mruRank(a.element) ?? Int.max,
-                        pidRank[a.element.pid] ?? Int.max, a.offset)
-            let keyB = (b.element.isMinimized ? 1 : 0, mruRank(b.element) ?? Int.max,
-                        pidRank[b.element.pid] ?? Int.max, b.offset)
-            return keyA < keyB
+        // Decorate-sort-undecorate: compute each window's sort key once
+        // (mruRank is a linear CFEqual scan, so recomputing it inside the
+        // comparator would be O(N log N) scans instead of O(N)).
+        typealias SortKey = (Int, Int, Int, Int)
+        let keyed: [(key: SortKey, element: WindowInfo)] = windows.enumerated().map { offset, element in
+            ((element.isMinimized ? 1 : 0, mruRank(element) ?? Int.max,
+              pidRank[element.pid] ?? Int.max, offset), element)
         }
-        return sorted.map(\.element)
+        return keyed.sorted { $0.key < $1.key }.map(\.element)
     }
 
     /// Backward-compatible alias: pure z-order without MRU input.

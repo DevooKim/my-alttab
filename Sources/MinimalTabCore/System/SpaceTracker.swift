@@ -49,6 +49,24 @@ enum SpaceTracker {
         return wid
     }
 
+    /// windowID → Space ordinal for every window across all Spaces, built
+    /// with one `CGSCopyWindowsWithOptionsAndTags` per Space (bounded by the
+    /// Space count) instead of one `CGSCopySpacesForWindows` per window.
+    /// `CGSCopySpacesForWindows` does not preserve a per-window mapping when
+    /// passed multiple IDs (it returns the union of containing Spaces), so it
+    /// can't be batched directly — this inverts the lookup instead.
+    static func spaceNumbersByWindowID(ordinals: [Int: Int]) -> [CGWindowID: Int] {
+        // allSpaceWindowIDs already dedupes a multi-Space window to its
+        // first-seen entry, and Spaces are walked in ascending ordinal order,
+        // so the first ordinal seen is the lowest — matching the per-window
+        // path's `.min()`.
+        var map: [CGWindowID: Int] = [:]
+        for (wid, ordinal) in allSpaceWindowIDs(ordinals: ordinals) where map[wid] == nil {
+            map[wid] = ordinal
+        }
+        return map
+    }
+
     static func spaceNumber(forWindowID wid: CGWindowID, ordinals: [Int: Int]) -> Int? {
         guard let spaceIDs = CGSCopySpacesForWindows(
             connection,

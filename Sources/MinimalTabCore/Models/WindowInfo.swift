@@ -4,7 +4,17 @@ import ApplicationServices
 /// One switchable window. `axElement` is optional so pure-logic tests can
 /// construct instances without touching the Accessibility API.
 public struct WindowInfo: Identifiable, Equatable {
-    public let id: UUID
+    /// Per-instance fallback identity, used only when `windowID` is 0 (an
+    /// off-Space AX window whose CGWindowID couldn't be resolved). When a
+    /// real `windowID` is present, identity comes from it instead — stable
+    /// across enumerations, so SwiftUI diffing and `==` stay meaningful.
+    private let fallbackID: UUID
+
+    /// Stable identity for SwiftUI/`Identifiable`. Prefers the CGWindowID
+    /// (stable for a window's lifetime, unique); falls back to a per-instance
+    /// UUID when the window ID is unknown.
+    public var id: String { windowID != 0 ? "wid:\(windowID)" : "uuid:\(fallbackID.uuidString)" }
+
     public let pid: pid_t
     public let appName: String
     public let appIcon: NSImage?
@@ -32,7 +42,7 @@ public struct WindowInfo: Identifiable, Equatable {
         windowID: CGWindowID = 0,
         axElement: AXUIElement?
     ) {
-        self.id = id
+        self.fallbackID = id
         self.pid = pid
         self.appName = appName
         self.appIcon = appIcon

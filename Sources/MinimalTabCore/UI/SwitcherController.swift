@@ -15,7 +15,20 @@ public final class SwitcherController {
     /// Auto-dismiss timer for the "no windows" empty state.
     private var emptyStateTimer: Timer?
 
-    public var isActive: Bool { session != nil }
+    /// True between begin() and the session materializing (background
+    /// enumeration in flight). A monotonically-increasing token lets a
+    /// cancel()/commit() that happens mid-load discard the stale result.
+    private var isLoading = false
+    private var loadToken = 0
+    /// Triggers/commit that arrive before the window list finishes loading
+    /// are recorded here and replayed once the session exists, so the
+    /// hold-modifier interaction never drops a keystroke.
+    private enum PendingAction { case advance, retreat, selectLast, commit }
+    private var pendingActions: [PendingAction] = []
+
+    /// The tap treats a loading session as active so it keeps swallowing
+    /// trigger keyDowns and routing flagsChanged to us.
+    public var isActive: Bool { session != nil || isLoading }
 
     public init(preferences: Preferences = .shared) {
         self.preferences = preferences
@@ -33,6 +46,7 @@ public final class SwitcherController {
             syncViewModel()
             return
         }
+        if isLoading { pendingActions.append(.advance); return }
         begin(mode: mode)
     }
 
@@ -43,15 +57,14 @@ public final class SwitcherController {
             syncViewModel()
             return
         }
-        begin(mode: mode)
-        if let count = session?.windows.count, count > 1 {
-            session?.select(index: count - 1)
-            syncViewModel()
-        }
+        if isLoading { pendingActions.append(.retreat); return }
+        // Opening fresh in reverse: select the last item once it loads.
+        begin(mode: mode, openingAction: .selectLast)
     }
 
     /// Single reverse key while the list is open: move backward one step.
     public func retreatSelection() {
+        if isLoading { pendingActions.append(.retreat); return }
         guard session != nil else { return }
         session?.retreat()
         syncViewModel()
@@ -85,12 +98,19 @@ public final class SwitcherController {
     public func handleFlagsChanged(_ flags: CGEventFlags) {
         guard let shortcut = activeShortcut else { return }
         if !shortcut.modifiersStillHeld(flags: flags) {
+            // Released before the list finished loading: commit whatever
+            // selection the queued actions resolve to once it arrives.
+            if isLoading { pendingActions.append(.commit); return }
             commit()
         }
     }
 
     public func cancel() {
-        guard session != nil else { return }
+        guard session != nil || isLoading else { return }
+        // Invalidate any in-flight load so its completion is discarded.
+        isLoading = false
+        loadToken &+= 1
+        pendingActions.removeAll()
         emptyStateTimer?.invalidate()
         emptyStateTimer = nil
         session = nil
@@ -98,28 +118,73 @@ public final class SwitcherController {
         panel.hide()
     }
 
-    private func begin(mode: SwitcherMode) {
-        let raw: [WindowInfo]
-        let rank: (WindowInfo) -> Int? = { [mru] in mru.rank(of: $0.axElement) }
+    /// Enumerate windows off the main thread (AX/CGS IPC is the dominant
+    /// open-time cost), then materialize the session back on the main actor.
+    /// The panel is shown only once the list is ready, so it sizes correctly
+    /// in one pass — no resize jump. Trigger/commit keystrokes that arrive
+    /// mid-load are queued in `pendingActions` and replayed on arrival.
+    private func begin(mode: SwitcherMode, openingAction: PendingAction? = nil) {
+        // Capture everything the enumeration needs on the main actor first:
+        // Preferences and the MRU tracker are both @MainActor.
+        let blacklist = preferences.blacklistedBundleIDs
+        let showAllSpaces = preferences.showAllSpaces
+        let includeMinimized = preferences.includeMinimized
+        let rank = mru.rankSnapshot()
+        let enumerator = self.enumerator
+
         switch mode {
-        case .global:
-            raw = enumerator.allWindows(
-                blacklist: preferences.blacklistedBundleIDs,
-                showAllSpaces: preferences.showAllSpaces,
-                mruRank: rank
-            )
-            activeShortcut = preferences.globalShortcut
-        case .sameApp:
-            raw = enumerator.frontmostAppWindows(blacklist: preferences.blacklistedBundleIDs, mruRank: rank)
-            activeShortcut = preferences.sameAppShortcut
+        case .global: activeShortcut = preferences.globalShortcut
+        case .sameApp: activeShortcut = preferences.sameAppShortcut
         }
-        let windows = WindowInfo.visibleWindows(raw, includeMinimized: preferences.includeMinimized)
-        NSLog("MinimalTab: trigger \(mode), \(raw.count) windows enumerated, \(windows.count) visible")
-        session = SwitcherSession(windows: windows)
+
+        isLoading = true
+        loadToken &+= 1
+        let token = loadToken
+        if let openingAction { pendingActions.append(openingAction) }
+
+        Task.detached(priority: .userInitiated) {
+            let mruRank: (WindowInfo) -> Int? = { rank($0.axElement) }
+            let raw: [WindowInfo]
+            switch mode {
+            case .global:
+                raw = enumerator.allWindows(
+                    blacklist: blacklist, showAllSpaces: showAllSpaces, mruRank: mruRank
+                )
+            case .sameApp:
+                raw = enumerator.frontmostAppWindows(blacklist: blacklist, mruRank: mruRank)
+            }
+            let windows = WindowInfo.visibleWindows(raw, includeMinimized: includeMinimized)
+            await MainActor.run { [weak self] in
+                self?.finishBegin(mode: mode, windows: windows, rawCount: raw.count, token: token)
+            }
+        }
+    }
+
+    /// Main-actor completion of a background enumeration. Drops stale loads
+    /// (cancelled/superseded while in flight) via the token check.
+    private func finishBegin(mode: SwitcherMode, windows: [WindowInfo], rawCount: Int, token: Int) {
+        guard token == loadToken, isLoading else { return }
+        isLoading = false
+        NSLog("MinimalTab: trigger \(mode), \(rawCount) windows enumerated, \(windows.count) visible")
+        var newSession = SwitcherSession(windows: windows)
+        // Replay any triggers/commit that arrived while loading.
+        let queued = pendingActions
+        pendingActions.removeAll()
+        var shouldCommit = false
+        for action in queued {
+            switch action {
+            case .advance: newSession.advance()
+            case .retreat: newSession.retreat()
+            case .selectLast where windows.count > 1: newSession.select(index: windows.count - 1)
+            case .selectLast: break
+            case .commit: shouldCommit = true
+            }
+        }
+        session = newSession
         syncViewModel()
+        if shouldCommit { commit(); return }
+
         panel.show()
-        // Empty state: nothing to commit, so auto-dismiss after a moment
-        // (modifier release / Escape also close it, whichever comes first).
         emptyStateTimer?.invalidate()
         if windows.isEmpty {
             let timer = Timer(timeInterval: 2.0, repeats: false) { [weak self] _ in
@@ -131,6 +196,8 @@ public final class SwitcherController {
     }
 
     private func commit() {
+        isLoading = false
+        pendingActions.removeAll()
         emptyStateTimer?.invalidate()
         emptyStateTimer = nil
         let selected = session?.selectedWindow
