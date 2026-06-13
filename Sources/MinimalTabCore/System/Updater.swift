@@ -34,7 +34,7 @@ public enum Updater {
         periodicTimer?.invalidate()
         let interval: TimeInterval = 24 * 60 * 60
         let timer = Timer(timeInterval: interval, repeats: true) { _ in
-            checkForUpdates(silent: true)
+            Task { @MainActor in checkForUpdates(silent: true) }
         }
         timer.tolerance = 60 * 60 // an hour of slack; this isn't time-critical
         RunLoop.main.add(timer, forMode: .common)
@@ -115,8 +115,8 @@ public enum Updater {
             }
 
             // Strip quarantine so the swapped-in build opens without a
-            // Gatekeeper re-prompt (we trust our own release).
-            try? run("/usr/bin/xattr", ["-dr", "com.apple.quarantine", newApp.path])
+            // Gatekeeper re-prompt (we trust our own release). Best-effort.
+            _ = try? run("/usr/bin/xattr", ["-dr", "com.apple.quarantine", newApp.path])
 
             // Replace the running bundle in place.
             let installed = Bundle.main.bundleURL
