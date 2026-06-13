@@ -50,21 +50,27 @@ public struct WindowEnumerator {
         blacklist: [String]
     ) -> [WindowInfo] {
         let knownIDs = Set(alreadyFound.map(\.windowID))
+        // Space membership per CGWindowID (covers all Spaces).
         let spaceByID = Dictionary(
             SpaceTracker.allSpaceWindowIDs(ordinals: ordinals).map { ($0.id, $0.space) },
             uniquingKeysWith: { a, _ in a }
         )
-        let candidateIDs = spaceByID.keys.filter { !knownIDs.contains($0) }
-        guard !candidateIDs.isEmpty,
-              let infos = CGWindowListCreateDescriptionFromArray(candidateIDs as CFArray) as? [[String: Any]] else {
+        // The full window list (all Spaces) carries the metadata we need;
+        // per-ID description lookups don't work for off-Space windows, so
+        // we fetch everything once and cross-reference by ID.
+        guard let entries = CGWindowListCopyWindowInfo(
+            [.optionAll, .excludeDesktopElements], kCGNullWindowID
+        ) as? [[String: Any]] else {
             return []
         }
 
         var result: [WindowInfo] = []
-        for entry in infos {
+        for entry in entries {
             guard let layer = entry[kCGWindowLayer as String] as? Int, layer == 0,
-                  let pid = entry[kCGWindowOwnerPID as String] as? pid_t,
                   let widValue = entry[kCGWindowNumber as String] as? CGWindowID,
+                  !knownIDs.contains(widValue),
+                  let space = spaceByID[widValue],
+                  let pid = entry[kCGWindowOwnerPID as String] as? pid_t,
                   let app = NSRunningApplication(processIdentifier: pid),
                   app.activationPolicy == .regular,
                   !Self.isExcluded(app.bundleIdentifier, blacklist: blacklist) else { continue }
@@ -73,8 +79,8 @@ public struct WindowEnumerator {
             if let bounds = entry[kCGWindowBounds as String] as? [String: CGFloat],
                let w = bounds["Width"], let h = bounds["Height"], w < 80 || h < 80 { continue }
 
-            // kCGWindowName is empty without Screen Recording permission;
-            // fall back to the app name so the row is still meaningful.
+            // kCGWindowName is populated only with Screen Recording
+            // permission; fall back to the app name so the row still reads.
             let title = (entry[kCGWindowName as String] as? String) ?? ""
             result.append(WindowInfo(
                 id: UUID(),
@@ -84,7 +90,7 @@ public struct WindowEnumerator {
                 title: title,
                 isMinimized: false,
                 isHidden: app.isHidden,
-                spaceNumber: spaceByID[widValue],
+                spaceNumber: space,
                 windowID: widValue,
                 axElement: nil
             ))
