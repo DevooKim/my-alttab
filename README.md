@@ -10,6 +10,10 @@ A fast, text-only window switcher for macOS. No window previews — just app
 names and window titles. Works without Screen Recording permission;
 showing windows from other Spaces is an optional opt-in that uses it.
 
+<p align="center">
+  <img src="assets/screenshots/switcher.png" width="560" alt="Switcher panel">
+</p>
+
 ## Features
 
 - **Option + Tab** — switch between all windows (hold Option, tap Tab to cycle, release to switch)
@@ -18,8 +22,9 @@ showing windows from other Spaces is an optional opt-in that uses it.
   trigger press toggles between your two latest windows
 - **Quick Actions** — while the list is open: `W` closes the selected
   window, `Q` quits its app
-- **Reverse navigation** — `←` moves the selection backward
+- **Reverse navigation** — `Shift` moves the selection backward
 - **Settings key** — `,` opens settings while the list is open
+- **Localized** — English / Korean, following the system language (or pick one in Settings)
 - **All Spaces (optional)** — show windows from every Space, not just the
   active one; titles for other Spaces need Screen Recording permission
   (off by default)
@@ -29,6 +34,10 @@ showing windows from other Spaces is an optional opt-in that uses it.
   windows fall back to "Untitled", panel appears on the display under
   your cursor
 - All keys are configurable from the menu bar icon → Settings…
+
+<p align="center">
+  <img src="assets/screenshots/settings.png" width="360" alt="Settings window">
+</p>
 
 ## Install
 
