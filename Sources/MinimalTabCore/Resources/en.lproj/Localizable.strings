@@ -51,6 +51,9 @@
 "settings.ui.spaceSection" = "Space";
 "settings.ui.showAllSpaces" = "Show windows from all Spaces";
 "settings.ui.showAllSpaces.footer" = "Also lists windows on other Spaces. Reading their titles requires Screen Recording permission; without it, only the app name is shown.";
+"settings.ui.menuBarSection" = "Menu Bar";
+"settings.ui.showMenuBarIcon" = "Show menu bar icon";
+"settings.ui.showMenuBarIcon.footer" = "When hidden, open Settings again with the in-switcher settings key (default \",\") while the switcher list is open.";
 
 /* Settings - general */
 "settings.shortcutSection" = "Shortcuts";

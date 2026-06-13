@@ -17,6 +17,7 @@ public final class Preferences {
         public static let showAllSpaces = "showAllSpaces"
         public static let hasCompletedOnboarding = "hasCompletedOnboarding"
         public static let languageOverride = "languageOverride"
+        public static let showMenuBarIcon = "showMenuBarIcon"
     }
 
     public static let shared = Preferences()
@@ -45,6 +46,7 @@ public final class Preferences {
         defaults.register(defaults: [
             Key.includeMinimized: true,
             Key.blacklistedBundleIDs: Self.defaultBlacklist,
+            Key.showMenuBarIcon: true,
         ])
     }
 
@@ -121,6 +123,13 @@ public final class Preferences {
     public var showAllSpaces: Bool {
         get { defaults.bool(forKey: Key.showAllSpaces) }
         set { defaults.set(newValue, forKey: Key.showAllSpaces) }
+    }
+
+    /// Whether the menu-bar status icon is shown. When hidden, Settings is
+    /// still reachable via the in-switcher settings key (default ",").
+    public var showMenuBarIcon: Bool {
+        get { defaults.bool(forKey: Key.showMenuBarIcon) }
+        set { defaults.set(newValue, forKey: Key.showMenuBarIcon) }
     }
 
     /// Apps whose windows never appear in the switcher.

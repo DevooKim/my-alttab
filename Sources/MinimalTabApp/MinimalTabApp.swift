@@ -9,9 +9,10 @@ import MinimalTabCore
 struct MinimalTabApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @Environment(\.openWindow) private var openWindow
+    @AppStorage(Preferences.Key.showMenuBarIcon) private var showMenuBarIcon = true
 
     var body: some Scene {
-        MenuBarExtra {
+        MenuBarExtra(isInserted: $showMenuBarIcon) {
             MenuBarContent()
         } label: {
             // The label renders eagerly (the status item is visible at launch),

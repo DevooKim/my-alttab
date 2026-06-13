@@ -95,6 +95,7 @@ public struct SettingsView: View {
 
     @AppStorage(Preferences.Key.listSize) private var listSizeRaw = ListSize.medium.rawValue
     @AppStorage(Preferences.Key.highlightStyle) private var highlightStyleRaw = HighlightStyle.fill.rawValue
+    @AppStorage(Preferences.Key.showMenuBarIcon) private var showMenuBarIcon = true
     @State private var showAllSpaces = Preferences.shared.showAllSpaces
     @State private var languageOverride = Preferences.shared.languageOverride
 
@@ -170,6 +171,14 @@ public struct SettingsView: View {
                     }
                 }
                 .pickerStyle(.segmented)
+            }
+            Section {
+                Toggle(L("settings.ui.showMenuBarIcon"), isOn: $showMenuBarIcon)
+            } header: {
+                Text(L("settings.ui.menuBarSection"))
+            } footer: {
+                Text(L("settings.ui.showMenuBarIcon.footer"))
+                    .font(.caption).foregroundColor(.secondary)
             }
             Section {
                 Picker(L("settings.language"), selection: $languageOverride) {
