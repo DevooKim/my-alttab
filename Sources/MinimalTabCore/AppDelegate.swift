@@ -56,6 +56,12 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         self.hotKeys = hotKeys
+
+        // Check for updates a few seconds after launch (silent: no alert
+        // unless an update is available).
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+            Updater.checkForUpdates(silent: true)
+        }
     }
 
     public func applicationWillTerminate(_ notification: Notification) {

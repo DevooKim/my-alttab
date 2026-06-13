@@ -18,6 +18,10 @@ public final class StatusBarController {
         aboutItem.target = self
         menu.addItem(aboutItem)
         menu.addItem(.separator())
+        let updateItem = NSMenuItem(title: "업데이트 확인…", action: #selector(checkForUpdates), keyEquivalent: "")
+        updateItem.target = self
+        menu.addItem(updateItem)
+        menu.addItem(.separator())
         let settingsItem = NSMenuItem(title: "Settings…", action: #selector(openSettings), keyEquivalent: ",")
         settingsItem.target = self
         menu.addItem(settingsItem)
@@ -28,6 +32,10 @@ public final class StatusBarController {
 
     @objc private func openSettings() {
         onSettings()
+    }
+
+    @objc private func checkForUpdates() {
+        Updater.checkForUpdates(silent: false)
     }
 
     /// Standard About panel: bundle icon, name, version, and copyright
