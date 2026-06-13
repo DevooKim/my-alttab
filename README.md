@@ -6,8 +6,9 @@
 
 [한국어](README.ko.md)
 
-A fast, text-only window switcher for macOS. No window previews, no screen
-recording permission — just app names and window titles.
+A fast, text-only window switcher for macOS. No window previews — just app
+names and window titles. Works without Screen Recording permission;
+showing windows from other Spaces is an optional opt-in that uses it.
 
 ## Features
 
@@ -19,6 +20,9 @@ recording permission — just app names and window titles.
   window, `Q` quits its app
 - **Reverse navigation** — `←` moves the selection backward
 - **Settings key** — `,` opens settings while the list is open
+- **All Spaces (optional)** — show windows from every Space, not just the
+  active one; titles for other Spaces need Screen Recording permission
+  (off by default)
 - **App exclusion list** — remote-desktop/VM viewers are excluded by
   default (AltTab's list); add or remove apps in Settings
 - Minimized windows shown dimmed with a suffix (toggleable), untitled

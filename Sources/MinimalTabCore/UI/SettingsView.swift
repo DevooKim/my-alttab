@@ -15,6 +15,7 @@ public struct SettingsView: View {
 
     @AppStorage(Preferences.Key.listSize) private var listSizeRaw = ListSize.medium.rawValue
     @AppStorage(Preferences.Key.highlightStyle) private var highlightStyleRaw = HighlightStyle.fill.rawValue
+    @State private var showAllSpaces = Preferences.shared.showAllSpaces
 
     public init() {}
 
@@ -71,8 +72,25 @@ public struct SettingsView: View {
                 }
                 .pickerStyle(.segmented)
             }
+            Section {
+                Toggle("모든 Space의 창 표시", isOn: $showAllSpaces)
+            } header: {
+                Text("Space")
+            } footer: {
+                Text("다른 Space에 있는 창도 목록에 표시합니다. 그 창들의 제목을 읽으려면 화면 기록 권한이 필요하며, 권한이 없으면 앱 이름만 표시됩니다.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
         }
         .formStyle(.grouped)
+        .onChange(of: showAllSpaces) { on in
+            Preferences.shared.showAllSpaces = on
+            // Ask for Screen Recording only when turning the feature ON and
+            // it isn't already granted.
+            if on && !ScreenRecordingPermission.isGranted {
+                ScreenRecordingPermission.explainAndPrompt()
+            }
+        }
         .fixedSize(horizontal: false, vertical: true)
     }
 

@@ -99,7 +99,11 @@ public final class SwitcherController {
         let rank: (WindowInfo) -> Int? = { [mru] in mru.rank(of: $0.axElement) }
         switch mode {
         case .global:
-            raw = enumerator.allWindows(blacklist: preferences.blacklistedBundleIDs, mruRank: rank)
+            raw = enumerator.allWindows(
+                blacklist: preferences.blacklistedBundleIDs,
+                showAllSpaces: preferences.showAllSpaces,
+                mruRank: rank
+            )
             activeShortcut = preferences.globalShortcut
         case .sameApp:
             raw = enumerator.frontmostAppWindows(blacklist: preferences.blacklistedBundleIDs, mruRank: rank)

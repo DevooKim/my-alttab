@@ -14,6 +14,7 @@ public final class Preferences {
         public static let blacklistedBundleIDs = "blacklistedBundleIDs"
         public static let listSize = "listSize"
         public static let highlightStyle = "highlightStyle"
+        public static let showAllSpaces = "showAllSpaces"
     }
 
     public static let shared = Preferences()
@@ -96,6 +97,15 @@ public final class Preferences {
     public var highlightStyle: HighlightStyle {
         get { defaults.string(forKey: Key.highlightStyle).flatMap(HighlightStyle.init(rawValue:)) ?? .fill }
         set { defaults.set(newValue.rawValue, forKey: Key.highlightStyle) }
+    }
+
+    /// Show windows from every Space, not just the active one. OFF by
+    /// default — when ON, titles of windows on inactive Spaces require
+    /// Screen Recording permission (read via kCGWindowName). With this OFF
+    /// the app never touches kCGWindowName.
+    public var showAllSpaces: Bool {
+        get { defaults.bool(forKey: Key.showAllSpaces) }
+        set { defaults.set(newValue, forKey: Key.showAllSpaces) }
     }
 
     /// Apps whose windows never appear in the switcher.

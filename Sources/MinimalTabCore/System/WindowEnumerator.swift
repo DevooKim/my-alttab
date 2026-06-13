@@ -14,6 +14,7 @@ public struct WindowEnumerator {
     /// Apps in `blacklist` (bundle IDs) are skipped entirely.
     public func allWindows(
         blacklist: [String] = [],
+        showAllSpaces: Bool = false,
         mruRank: (WindowInfo) -> Int? = { _ in nil }
     ) -> [WindowInfo] {
         let ordinals = SpaceTracker.currentSpaceOrdinals()
@@ -30,7 +31,65 @@ public struct WindowEnumerator {
         if !Self.isExcluded(own.bundleIdentifier, blacklist: blacklist) {
             windows.append(contentsOf: windowsOf(app: own, spaceOrdinals: ordinals))
         }
+        if showAllSpaces {
+            windows.append(contentsOf: inactiveSpaceWindows(
+                alreadyFound: windows, ordinals: ordinals, blacklist: blacklist
+            ))
+        }
         return Self.order(windows, pidRank: Self.currentPidRank(), mruRank: mruRank)
+    }
+
+    /// Windows on inactive Spaces that AX never returns (AX only exposes
+    /// the active Space). Built from CGS Space membership + CGWindowList
+    /// metadata. Titles come from kCGWindowName, which is populated only
+    /// when Screen Recording permission is granted — hence this path runs
+    /// only when the user opts into "show all Spaces".
+    private func inactiveSpaceWindows(
+        alreadyFound: [WindowInfo],
+        ordinals: [Int: Int],
+        blacklist: [String]
+    ) -> [WindowInfo] {
+        let knownIDs = Set(alreadyFound.map(\.windowID))
+        let spaceByID = Dictionary(
+            SpaceTracker.allSpaceWindowIDs(ordinals: ordinals).map { ($0.id, $0.space) },
+            uniquingKeysWith: { a, _ in a }
+        )
+        let candidateIDs = spaceByID.keys.filter { !knownIDs.contains($0) }
+        guard !candidateIDs.isEmpty,
+              let infos = CGWindowListCreateDescriptionFromArray(candidateIDs as CFArray) as? [[String: Any]] else {
+            return []
+        }
+
+        var result: [WindowInfo] = []
+        for entry in infos {
+            guard let layer = entry[kCGWindowLayer as String] as? Int, layer == 0,
+                  let pid = entry[kCGWindowOwnerPID as String] as? pid_t,
+                  let widValue = entry[kCGWindowNumber as String] as? CGWindowID,
+                  let app = NSRunningApplication(processIdentifier: pid),
+                  app.activationPolicy == .regular,
+                  !Self.isExcluded(app.bundleIdentifier, blacklist: blacklist) else { continue }
+            // Skip tiny/utility windows (panels often have no name and a
+            // small footprint); require a real on-screen size.
+            if let bounds = entry[kCGWindowBounds as String] as? [String: CGFloat],
+               let w = bounds["Width"], let h = bounds["Height"], w < 80 || h < 80 { continue }
+
+            // kCGWindowName is empty without Screen Recording permission;
+            // fall back to the app name so the row is still meaningful.
+            let title = (entry[kCGWindowName as String] as? String) ?? ""
+            result.append(WindowInfo(
+                id: UUID(),
+                pid: pid,
+                appName: app.localizedName ?? "Unknown",
+                appIcon: app.icon,
+                title: title,
+                isMinimized: false,
+                isHidden: app.isHidden,
+                spaceNumber: spaceByID[widValue],
+                windowID: widValue,
+                axElement: nil
+            ))
+        }
+        return result
     }
 
     /// Windows of the frontmost app only (Same-App Switch, PRD 2.C).
@@ -65,6 +124,7 @@ public struct WindowEnumerator {
             guard stringAttribute(axWindow, kAXSubroleAttribute) == kAXStandardWindowSubrole as String else {
                 return nil
             }
+            let wid = SpaceTracker.windowID(for: axWindow) ?? 0
             return WindowInfo(
                 id: UUID(),
                 pid: pid,
@@ -73,7 +133,8 @@ public struct WindowEnumerator {
                 title: stringAttribute(axWindow, kAXTitleAttribute) ?? "",
                 isMinimized: boolAttribute(axWindow, kAXMinimizedAttribute),
                 isHidden: app.isHidden,
-                spaceNumber: SpaceTracker.spaceNumber(for: axWindow, ordinals: spaceOrdinals),
+                spaceNumber: SpaceTracker.spaceNumber(forWindowID: wid, ordinals: spaceOrdinals),
+                windowID: wid,
                 axElement: axWindow
             )
         }

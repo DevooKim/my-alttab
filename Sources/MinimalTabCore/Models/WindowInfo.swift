@@ -15,6 +15,9 @@ public struct WindowInfo: Identifiable, Equatable {
     /// 1-based Space (desktop) ordinal across all displays; nil when the
     /// window's Space couldn't be determined (e.g. minimized/off-screen).
     public let spaceNumber: Int?
+    /// CGWindowID, used to activate windows on inactive Spaces that have no
+    /// reachable AX element. 0 when unknown.
+    public let windowID: CGWindowID
     public let axElement: AXUIElement?
 
     public init(
@@ -26,6 +29,7 @@ public struct WindowInfo: Identifiable, Equatable {
         isMinimized: Bool,
         isHidden: Bool,
         spaceNumber: Int? = nil,
+        windowID: CGWindowID = 0,
         axElement: AXUIElement?
     ) {
         self.id = id
@@ -36,6 +40,7 @@ public struct WindowInfo: Identifiable, Equatable {
         self.isMinimized = isMinimized
         self.isHidden = isHidden
         self.spaceNumber = spaceNumber
+        self.windowID = windowID
         self.axElement = axElement
     }
 
