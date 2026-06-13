@@ -32,17 +32,25 @@ public struct MenuBarContent: View {
             .keyboardShortcut("q", modifiers: .command)
     }
 
-    /// Open the SwiftUI `Settings` scene via the selector AppKit installs for
-    /// it. Used by the macOS 13 menu fallback and by the in-switcher settings
-    /// hotkey (which fires from the CGEventTap, where `SettingsLink` is
-    /// unavailable). The selector was renamed across releases —
-    /// `showSettingsWindow:` on macOS 13+, `showPreferencesWindow:` earlier —
-    /// so try both and use whichever the responder chain accepts.
+    /// Open the Settings scene from the macOS 13 menu fallback.
     static func openSettingsLegacy() {
+        SettingsOpener.open()
+    }
+}
+
+/// Opens the SwiftUI `Settings` scene from non-View contexts — the macOS 13
+/// menu fallback and the in-switcher settings hotkey (which fires from the
+/// CGEventTap). The `showSettingsWindow:` selector proved unreliable on
+/// macOS 26 (it reports handled but no window appears), so route through the
+/// `openSettings` environment action via a notification observed by an
+/// always-mounted view in the scene graph (the MenuBarExtra label), mirroring
+/// the onboarding-open mechanism.
+@MainActor
+public enum SettingsOpener {
+    public static let openNotification = Notification.Name("MinimalTab.openSettings")
+
+    public static func open() {
         NSApp.activate(ignoringOtherApps: true)
-        let selectors = ["showSettingsWindow:", "showPreferencesWindow:"]
-        for name in selectors where NSApp.sendAction(Selector((name)), to: nil, from: nil) {
-            return
-        }
+        NotificationCenter.default.post(name: openNotification, object: nil)
     }
 }

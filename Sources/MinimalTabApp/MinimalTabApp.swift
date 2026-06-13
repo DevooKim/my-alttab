@@ -16,12 +16,13 @@ struct MinimalTabApp: App {
             MenuBarContent()
         } label: {
             // The label renders eagerly (the status item is visible at launch),
-            // so the onboarding-open observer hosted here is live immediately —
-            // unlike the menu *content*, which mounts lazily on first open.
+            // so the open observers hosted here are live immediately — unlike
+            // the menu *content*, which mounts lazily on first open.
             Image(systemName: "rectangle.stack")
                 .onReceive(NotificationCenter.default.publisher(for: OnboardingWindow.openNotification)) { _ in
                     openWindow(id: OnboardingWindow.id)
                 }
+                .modifier(OpenSettingsOnNotification())
         }
 
         Settings {
@@ -33,5 +34,31 @@ struct MinimalTabApp: App {
                 .fixedSize()
         }
         .windowResizability(.contentSize)
+    }
+}
+
+/// Opens the Settings scene when `SettingsOpener` posts. Uses the macOS 14+
+/// `openSettings` environment action (reliable, unlike the showSettingsWindow:
+/// selector on macOS 26); falls back to the selector on macOS 13.
+private struct OpenSettingsOnNotification: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(macOS 14, *) {
+            content.modifier(OpenSettingsModern())
+        } else {
+            content.onReceive(NotificationCenter.default.publisher(for: SettingsOpener.openNotification)) { _ in
+                NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+            }
+        }
+    }
+}
+
+@available(macOS 14, *)
+private struct OpenSettingsModern: ViewModifier {
+    @Environment(\.openSettings) private var openSettings
+
+    func body(content: Content) -> some View {
+        content.onReceive(NotificationCenter.default.publisher(for: SettingsOpener.openNotification)) { _ in
+            openSettings()
+        }
     }
 }
