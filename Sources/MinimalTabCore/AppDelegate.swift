@@ -2,8 +2,6 @@ import AppKit
 
 @MainActor
 public final class AppDelegate: NSObject, NSApplicationDelegate {
-    private var statusBar: StatusBarController?
-    private var settingsWindow: SettingsWindowController?
     private var switcher: SwitcherController?
     private var hotKeys: HotKeyMonitor?
     private var permissionRetryTimer: Timer?
@@ -20,9 +18,8 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         // install an invisible minimal one so they work in our windows.
         NSApp.mainMenu = Self.makeMainMenu()
 
-        let settings = SettingsWindowController()
-        settingsWindow = settings
-        statusBar = StatusBarController(onSettings: { settings.show() })
+        // The status bar (MenuBarExtra) and settings (Settings scene) are now
+        // owned by the SwiftUI Scene graph in MinimalTabApp.
 
         // First run: show onboarding (which handles the permission prompt
         // inline). Later runs: the usual alert if permission is missing.
@@ -49,7 +46,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         hotKeys.onQuickClose = { switcher.quickCloseSelected() }
         hotKeys.onOpenSettings = {
             switcher.cancel()
-            settings.show()
+            MenuBarContent.openSettingsLegacy()
         }
         hotKeys.onQuickQuit = { switcher.quickQuitSelected() }
         if !hotKeys.start() {

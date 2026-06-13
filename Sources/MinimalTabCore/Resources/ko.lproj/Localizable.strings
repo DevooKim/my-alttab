@@ -5,6 +5,8 @@
 /* Menu bar */
 "menu.about" = "My AltTab 정보";
 "menu.checkForUpdates" = "업데이트 확인…";
+"menu.settings" = "설정…";
+"menu.quit" = "My AltTab 종료";
 
 /* Key recorder */
 "recorder.pressKey" = "키 입력…";
