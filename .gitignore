@@ -3,3 +3,8 @@
 dist/
 *.xcodeproj
 .DS_Store
+
+# Local agent/skill tooling (not part of the project source)
+.agents/
+.claude/skills/
+skills-lock.json
