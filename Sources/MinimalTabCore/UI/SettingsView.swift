@@ -41,6 +41,10 @@ public struct SettingsView: View {
                 .font(.title2.bold())
             Text("버전 \(Self.bundleString("CFBundleShortVersionString")) (빌드 \(Self.bundleString("CFBundleVersion")))")
                 .foregroundColor(.secondary)
+            Button("업데이트 확인") {
+                Updater.checkForUpdates(silent: false)
+            }
+            .padding(.top, 4)
             Link("github.com/DevooKim/my-alttab",
                  destination: URL(string: "https://github.com/DevooKim/my-alttab")!)
             Text(Self.bundleString("NSHumanReadableCopyright"))
