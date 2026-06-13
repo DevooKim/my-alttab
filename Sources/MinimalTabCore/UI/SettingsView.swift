@@ -5,14 +5,20 @@ import AppKit
 /// `fullSizeContentView` + transparent titlebar so the chrome and content
 /// share one translucent surface.
 private struct WindowMaterialBackground: NSViewRepresentable {
+    var material: NSVisualEffectView.Material = .windowBackground
+    var blendingMode: NSVisualEffectView.BlendingMode = .behindWindow
+
     func makeNSView(context: Context) -> NSVisualEffectView {
         let view = NSVisualEffectView()
-        view.material = .windowBackground
-        view.blendingMode = .behindWindow
+        view.material = material
+        view.blendingMode = blendingMode
         view.state = .active
         return view
     }
-    func updateNSView(_ nsView: NSVisualEffectView, context: Context) {}
+    func updateNSView(_ nsView: NSVisualEffectView, context: Context) {
+        nsView.material = material
+        nsView.blendingMode = blendingMode
+    }
 }
 
 public struct SettingsView: View {
@@ -43,8 +49,7 @@ public struct SettingsView: View {
             aboutTab
                 .tabItem { Label(L("settings.tab.about"), systemImage: "info.circle") }
         }
-        .frame(width: 460)
-        .scenePadding()
+        .frame(minWidth: 460, maxWidth: .infinity, minHeight: 300, maxHeight: .infinity)
         // Fills the transparent titlebar region (fullSizeContentView) so the
         // window reads as one continuous translucent surface.
         .background(WindowMaterialBackground())
@@ -140,7 +145,6 @@ public struct SettingsView: View {
                 ScreenRecordingPermission.explainAndPrompt()
             }
         }
-        .fixedSize(horizontal: false, vertical: true)
     }
 
     private var generalTab: some View {
@@ -205,7 +209,6 @@ public struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .fixedSize(horizontal: false, vertical: true)
         .onChange(of: globalShortcut) { Preferences.shared.globalShortcut = $0 }
         .onChange(of: sameAppShortcut) { Preferences.shared.sameAppShortcut = $0 }
         .onChange(of: settingsKey) { Preferences.shared.settingsKey = $0 }
