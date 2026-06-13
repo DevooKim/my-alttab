@@ -42,12 +42,14 @@ public final class StatusBarController {
     /// come from Info.plist; credits add the GitHub link.
     @objc private func showAbout() {
         NSApp.activate(ignoringOtherApps: true)
-        let credits = NSMutableAttributedString(string: "github.com/DevooKim/my-alttab")
-        credits.addAttribute(
-            .link,
-            value: "https://github.com/DevooKim/my-alttab",
-            range: NSRange(location: 0, length: credits.length)
-        )
+        let credits = NSMutableAttributedString(string: "GitHub")
+        let range = NSRange(location: 0, length: credits.length)
+        credits.addAttributes([
+            .link: "https://github.com/DevooKim/my-alttab",
+            .foregroundColor: NSColor.linkColor,
+            .underlineStyle: NSUnderlineStyle.single.rawValue,
+            .paragraphStyle: { let p = NSMutableParagraphStyle(); p.alignment = .center; return p }(),
+        ], range: range)
         NSApp.orderFrontStandardAboutPanel(options: [.credits: credits])
     }
 }

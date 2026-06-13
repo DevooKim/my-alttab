@@ -70,7 +70,7 @@ public struct SettingsView: View {
                 }
                 .glassButtonStyle()
                 .padding(.top, 4)
-                Link("github.com/DevooKim/my-alttab",
+                Link("GitHub",
                      destination: URL(string: "https://github.com/DevooKim/my-alttab")!)
                 Text(Self.bundleString("NSHumanReadableCopyright"))
                     .font(.caption)

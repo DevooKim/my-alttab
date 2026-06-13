@@ -162,12 +162,48 @@ public enum Updater {
     private static func confirmUpdate(from: SemanticVersion, to: SemanticVersion, notes: String) -> Bool {
         let alert = NSAlert()
         alert.messageText = String(format: L("update.available.title"), to.description)
-        let trimmed = notes.split(separator: "\n").prefix(12).joined(separator: "\n")
-        alert.informativeText = String(format: L("update.available.body"), from.description, to.description, String(trimmed))
+        let plain = plainText(fromMarkdown: notes)
+        let trimmed = plain.split(separator: "\n", omittingEmptySubsequences: false).prefix(12).joined(separator: "\n")
+        alert.informativeText = String(format: L("update.available.body"), from.description, to.description, trimmed)
         alert.addButton(withTitle: L("update.install"))
         alert.addButton(withTitle: L("common.later"))
         NSApp.activate(ignoringOtherApps: true)
         return alert.runModal() == .alertFirstButtonReturn
+    }
+
+    /// GitHub release bodies are Markdown; NSAlert shows plain text only, so
+    /// the raw markup (##, -, **, `) leaks through. Convert the common syntax
+    /// to readable plain text line-by-line.
+    static func plainText(fromMarkdown markdown: String) -> String {
+        let lines = markdown.replacingOccurrences(of: "\r\n", with: "\n").components(separatedBy: "\n")
+        return lines.map { rawLine -> String in
+            var line = rawLine.trimmingCharacters(in: .whitespaces)
+
+            // Headings: "## Title" -> "Title"
+            while line.hasPrefix("#") { line.removeFirst() }
+            line = line.trimmingCharacters(in: .whitespaces)
+
+            // List markers: "- item" / "* item" / "+ item" -> "• item"
+            for marker in ["- ", "* ", "+ "] where line.hasPrefix(marker) {
+                line = "• " + line.dropFirst(marker.count)
+                break
+            }
+
+            // Inline emphasis/code: **bold** __bold__ *italic* _italic_ `code`
+            for token in ["**", "__", "*", "_", "`"] {
+                line = line.replacingOccurrences(of: token, with: "")
+            }
+
+            // Links: [text](url) -> text
+            line = stripLinks(line)
+            return line
+        }.joined(separator: "\n")
+    }
+
+    private static func stripLinks(_ input: String) -> String {
+        guard let regex = try? NSRegularExpression(pattern: #"\[([^\]]+)\]\([^)]+\)"#) else { return input }
+        let range = NSRange(input.startIndex..., in: input)
+        return regex.stringByReplacingMatches(in: input, range: range, withTemplate: "$1")
     }
 
     private static func showInfo(title: String, text: String) {
