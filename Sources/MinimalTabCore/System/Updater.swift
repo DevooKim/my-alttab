@@ -24,6 +24,23 @@ public enum Updater {
         Task { await runCheck(silent: silent) }
     }
 
+    private static var periodicTimer: Timer?
+
+    /// Checks once now (silently) and then every 24h while the app runs.
+    /// The launch check is unconditional; the recurring one keeps
+    /// always-on users current without a restart.
+    public static func startAutomaticChecks() {
+        checkForUpdates(silent: true)
+        periodicTimer?.invalidate()
+        let interval: TimeInterval = 24 * 60 * 60
+        let timer = Timer(timeInterval: interval, repeats: true) { _ in
+            checkForUpdates(silent: true)
+        }
+        timer.tolerance = 60 * 60 // an hour of slack; this isn't time-critical
+        RunLoop.main.add(timer, forMode: .common)
+        periodicTimer = timer
+    }
+
     private static func runCheck(silent: Bool) async {
         guard let current = currentVersion else { return } // unbundled: skip
         guard Bundle.main.bundleURL.pathExtension == "app" else { return }

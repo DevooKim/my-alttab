@@ -57,10 +57,10 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         self.hotKeys = hotKeys
 
-        // Check for updates a few seconds after launch (silent: no alert
-        // unless an update is available).
+        // Check for updates shortly after launch, then every 24h while
+        // running (silent: alert only when an update is available).
         DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-            Updater.checkForUpdates(silent: true)
+            Updater.startAutomaticChecks()
         }
     }
 
