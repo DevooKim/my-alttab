@@ -85,14 +85,31 @@ private struct SwitcherRow: View {
                     .frame(width: size.iconSize, height: size.iconSize)
             }
             // PRD 2.B: [icon] + [bold app name] - [regular window title]
-            Text(window.appName).fontWeight(.bold)
+            (Text(window.appName).fontWeight(.bold)
                 + Text("  —  ").foregroundColor(.secondary)
-                + Text(window.displayTitle)
-            Spacer(minLength: 0)
+                + Text(window.displayTitle))
+                .font(.system(size: size.fontSize))
+                .lineLimit(1)
+                .truncationMode(.middle)
+            Spacer(minLength: 8)
+            if let space = window.spaceNumber {
+                // Space (desktop) number badge at the trailing edge.
+                Text("\(space)")
+                    .font(.system(size: size.fontSize - 2, weight: .medium))
+                    .monospacedDigit()
+                    .foregroundColor(isSelected && highlight == .fill ? .white.opacity(0.9) : .secondary)
+                    .frame(minWidth: size.fontSize + 4)
+                    .padding(.horizontal, 5)
+                    .padding(.vertical, 1)
+                    .background(
+                        Capsule().fill(
+                            isSelected && highlight == .fill
+                                ? Color.white.opacity(0.2)
+                                : Color.secondary.opacity(0.15)
+                        )
+                    )
+            }
         }
-        .font(.system(size: size.fontSize))
-        .lineLimit(1)
-        .truncationMode(.middle)
         // PRD 4.A: minimized items at 50% text opacity
         .opacity(window.isMinimized ? 0.5 : 1.0)
         .padding(.horizontal, 12)

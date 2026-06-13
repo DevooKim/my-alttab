@@ -12,6 +12,9 @@ public struct WindowInfo: Identifiable, Equatable {
     public let isMinimized: Bool
     /// True when the owning app is hidden (Cmd+H).
     public let isHidden: Bool
+    /// 1-based Space (desktop) ordinal across all displays; nil when the
+    /// window's Space couldn't be determined (e.g. minimized/off-screen).
+    public let spaceNumber: Int?
     public let axElement: AXUIElement?
 
     public init(
@@ -22,6 +25,7 @@ public struct WindowInfo: Identifiable, Equatable {
         title: String,
         isMinimized: Bool,
         isHidden: Bool,
+        spaceNumber: Int? = nil,
         axElement: AXUIElement?
     ) {
         self.id = id
@@ -31,6 +35,7 @@ public struct WindowInfo: Identifiable, Equatable {
         self.title = title
         self.isMinimized = isMinimized
         self.isHidden = isHidden
+        self.spaceNumber = spaceNumber
         self.axElement = axElement
     }
 
