@@ -40,9 +40,9 @@ public enum ListSize: String, CaseIterable {
 
     public var label: String {
         switch self {
-        case .small: return "작게"
-        case .medium: return "중간"
-        case .large: return "크게"
+        case .small: return L("listSize.small")
+        case .medium: return L("listSize.medium")
+        case .large: return L("listSize.large")
         }
     }
 }
@@ -56,8 +56,8 @@ public enum HighlightStyle: String, CaseIterable {
 
     public var label: String {
         switch self {
-        case .fill: return "전체 채우기"
-        case .border: return "테두리만"
+        case .fill: return L("highlight.fill")
+        case .border: return L("highlight.border")
         }
     }
 }

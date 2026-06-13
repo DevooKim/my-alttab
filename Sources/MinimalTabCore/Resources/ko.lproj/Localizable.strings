@@ -1,0 +1,105 @@
+/* Window titles */
+"window.onboarding.title" = "My AltTab 시작하기";
+"window.settings.title" = "My AltTab 설정";
+
+/* Menu bar */
+"menu.about" = "My AltTab 정보";
+"menu.checkForUpdates" = "업데이트 확인…";
+
+/* Key recorder */
+"recorder.pressKey" = "키 입력…";
+
+/* Switcher */
+"switcher.empty" = "전환할 창이 없습니다";
+"switcher.minimizedSuffix" = " (최소화됨)";
+"switcher.untitled" = "Untitled";
+
+/* Onboarding */
+"onboarding.subtitle" = "미리보기 없는 텍스트 기반 윈도우 전환기";
+"onboarding.start" = "시작하기";
+"onboarding.shortcut.global" = "전체 윈도우 전환";
+"onboarding.shortcut.sameApp" = "현재 앱 윈도우 전환";
+"onboarding.shortcut.reverse" = "역방향 이동 (전환 키와 함께)";
+"onboarding.shortcut.quick" = "선택한 창 닫기 / 앱 종료";
+"onboarding.permission.granted" = "손쉬운 사용 권한 허용됨";
+"onboarding.permission.needed" = "손쉬운 사용 권한이 필요합니다";
+"onboarding.permission.detail" = "다른 앱의 윈도우 목록을 가져오고 포커스를 제어하려면 권한이 필요합니다.";
+"onboarding.permission.allow" = "손쉬운 사용 권한 허용";
+
+/* Settings - tabs */
+"settings.tab.general" = "일반";
+"settings.tab.ui" = "UI";
+"settings.tab.about" = "정보";
+
+/* Settings - about */
+"settings.about.version" = "버전 %@ (빌드 %@)";
+"settings.about.checkForUpdates" = "업데이트 확인";
+
+/* List size / highlight options */
+"listSize.small" = "작게";
+"listSize.medium" = "중간";
+"listSize.large" = "크게";
+"highlight.fill" = "전체 채우기";
+"highlight.border" = "테두리만";
+
+/* Settings - UI */
+"settings.ui.listSection" = "전환 목록";
+"settings.ui.listSize" = "목록 크기";
+"settings.ui.highlightStyle" = "선택 표시 스타일";
+"settings.ui.spaceSection" = "Space";
+"settings.ui.showAllSpaces" = "모든 Space의 창 표시";
+"settings.ui.showAllSpaces.footer" = "다른 Space에 있는 창도 목록에 표시합니다. 그 창들의 제목을 읽으려면 화면 기록 권한이 필요하며, 권한이 없으면 앱 이름만 표시됩니다.";
+
+/* Settings - general */
+"settings.shortcutSection" = "단축키";
+"settings.shortcut.global" = "전체 윈도우 전환 (Global Switch)";
+"settings.shortcut.sameApp" = "현재 앱 윈도우 전환 (Same-App Switch)";
+"settings.shortcut.reverse" = "역방향 이동 키 (리스트 열린 상태)";
+"settings.shortcut.openSettings" = "설정 창 열기 키 (리스트 열린 상태)";
+"settings.quickSection" = "Quick Actions (리스트가 열린 상태에서)";
+"settings.quick.close" = "선택한 창 닫기";
+"settings.quick.quit" = "선택한 앱 종료";
+"settings.listSection" = "목록";
+"settings.includeMinimized" = "최소화된 윈도우 목록에 포함하기";
+"settings.exclusionSection" = "제외 앱";
+"settings.exclusion.empty" = "제외된 앱 없음";
+"settings.exclusion.remove" = "제거";
+"settings.exclusion.addRunning" = "실행 중인 앱에서 추가…";
+"settings.exclusion.restoreDefaults" = "기본값 복원";
+"settings.generalSection" = "일반";
+"settings.launchAtLogin" = "로그인 시 자동 실행 (Launch at login)";
+"settings.language" = "언어";
+"settings.language.system" = "자동";
+"settings.language.ko" = "한국어";
+"settings.language.en" = "English";
+"settings.language.restartNote" = "언어를 변경하면 앱이 다시 시작됩니다.";
+
+/* Exclusion friendly names */
+"app.screenSharing" = "화면 공유 (Screen Sharing)";
+"app.parallels" = "Parallels (전체)";
+
+/* Screen Recording permission */
+"screenRec.title" = "화면 기록 권한이 필요합니다";
+"screenRec.detail" = "다른 Space(데스크탑)에 있는 창의 제목을 읽으려면 화면 기록 권한이 필요합니다. 이 권한은 '모든 Space의 창 표시' 기능에만 사용되며, 창 제목 외의 화면 내용은 캡처하지 않습니다.\n\n시스템 설정에서 My AltTab을 허용하면 앱이 자동으로 다시 실행됩니다.";
+"screenRec.openSettings" = "시스템 설정 열기";
+"common.later" = "나중에";
+
+/* Accessibility permission */
+"accessibility.title" = "손쉬운 사용 권한이 필요합니다";
+"accessibility.detail" = "My AltTab은 다른 앱의 윈도우 목록을 가져오고 포커스를 제어하기 위해 손쉬운 사용(Accessibility) 권한이 필요합니다.\n\n시스템 설정 > 개인정보 보호 및 보안 > 손쉬운 사용에서 My AltTab을 허용한 뒤 앱을 다시 실행해 주세요.";
+"accessibility.openSettings" = "시스템 설정 열기";
+
+/* Updater */
+"update.checkFailed.title" = "업데이트 확인 실패";
+"update.upToDate.title" = "최신 버전입니다";
+"update.upToDate.text" = "현재 %@ 버전을 사용 중입니다.";
+"update.notFound.title" = "업데이트를 찾을 수 없음";
+"update.notFound.text" = "릴리스에 zip이 없습니다.";
+"update.failed.title" = "업데이트 실패";
+"update.failed.text" = "%@\n릴리스 페이지에서 직접 받아 주세요.";
+"update.available.title" = "새 버전 %@이 있습니다";
+"update.available.body" = "현재 %@ → %@\n\n%@";
+"update.install" = "지금 업데이트";
+"update.error.badResponse" = "GitHub 응답을 해석할 수 없습니다.";
+"update.error.noAppInZip" = "내려받은 zip에서 앱을 찾지 못했습니다.";
+"update.error.commandFailed" = "명령 실패: %@";

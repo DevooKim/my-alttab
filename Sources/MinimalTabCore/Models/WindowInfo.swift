@@ -44,12 +44,17 @@ public struct WindowInfo: Identifiable, Equatable {
         self.axElement = axElement
     }
 
-    /// PRD 4.B: empty titles fall back to "Untitled".
-    /// PRD 4.A: minimized windows are suffixed with "(최소화됨)".
-    public var displayTitle: String {
-        let base = title.isEmpty ? "Untitled" : title
-        return isMinimized ? base + " (최소화됨)" : base
+    /// Display title with fallback + minimized suffix. The strings are
+    /// injected so this stays pure (Models has no system/localization
+    /// dependency); the View passes localized values. Defaults keep the
+    /// model usable in tests and as a sensible fallback.
+    public func displayTitle(untitled: String = "Untitled", minimizedSuffix: String = " (minimized)") -> String {
+        let base = title.isEmpty ? untitled : title
+        return isMinimized ? base + minimizedSuffix : base
     }
+
+    /// Convenience for tests and non-localized callers.
+    public var displayTitle: String { displayTitle() }
 
     /// PRD 4.A: with the setting OFF, minimized/hidden windows are removed
     /// from the list entirely.

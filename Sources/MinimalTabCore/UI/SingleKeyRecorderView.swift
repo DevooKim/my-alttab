@@ -19,7 +19,7 @@ public struct SingleKeyRecorderView: View {
             Text(label)
             Spacer()
             Button(action: toggleRecording) {
-                Text(isRecording ? "키 입력…" : KeyboardShortcut.keyName(for: keyCode))
+                Text(isRecording ? L("recorder.pressKey") : KeyboardShortcut.keyName(for: keyCode))
                     .frame(minWidth: 60)
             }
         }

@@ -10,7 +10,7 @@ public final class SettingsWindowController: NSWindowController {
             backing: .buffered,
             defer: false
         )
-        window.title = "My AltTab 설정"
+        window.title = L("window.settings.title")
         window.isReleasedWhenClosed = false
         self.init(window: window)
     }

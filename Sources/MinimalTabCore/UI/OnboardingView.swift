@@ -15,12 +15,14 @@ public struct OnboardingView: View {
         self.onFinish = onFinish
     }
 
-    private static let shortcuts: [(keys: String, label: String)] = [
-        ("⌥⇥", "전체 윈도우 전환"),
-        ("⌥`", "현재 앱 윈도우 전환"),
-        ("⇧", "역방향 이동 (전환 키와 함께)"),
-        ("W / Q", "선택한 창 닫기 / 앱 종료"),
-    ]
+    private var shortcuts: [(keys: String, label: String)] {
+        [
+            ("⌥⇥", L("onboarding.shortcut.global")),
+            ("⌥`", L("onboarding.shortcut.sameApp")),
+            ("⇧", L("onboarding.shortcut.reverse")),
+            ("W / Q", L("onboarding.shortcut.quick")),
+        ]
+    }
 
     public var body: some View {
         VStack(spacing: 16) {
@@ -29,13 +31,13 @@ public struct OnboardingView: View {
                 .frame(width: 72, height: 72)
             Text("My AltTab")
                 .font(.title.bold())
-            Text("미리보기 없는 텍스트 기반 윈도우 전환기")
+            Text(L("onboarding.subtitle"))
                 .foregroundColor(.secondary)
 
             Divider()
 
             VStack(alignment: .leading, spacing: 8) {
-                ForEach(Self.shortcuts, id: \.keys) { item in
+                ForEach(shortcuts, id: \.keys) { item in
                     HStack(spacing: 12) {
                         Text(item.keys)
                             .font(.system(.body, design: .rounded).weight(.semibold))
@@ -58,7 +60,7 @@ public struct OnboardingView: View {
             permissionRow
 
             Button(action: finish) {
-                Text("시작하기").frame(maxWidth: .infinity)
+                Text(L("onboarding.start")).frame(maxWidth: .infinity)
             }
             .keyboardShortcut(.defaultAction)
             .controlSize(.large)
@@ -72,17 +74,17 @@ public struct OnboardingView: View {
     @ViewBuilder
     private var permissionRow: some View {
         if accessibilityGranted {
-            Label("손쉬운 사용 권한 허용됨", systemImage: "checkmark.circle.fill")
+            Label(L("onboarding.permission.granted"), systemImage: "checkmark.circle.fill")
                 .foregroundColor(.green)
         } else {
             VStack(spacing: 8) {
-                Label("손쉬운 사용 권한이 필요합니다", systemImage: "exclamationmark.triangle.fill")
+                Label(L("onboarding.permission.needed"), systemImage: "exclamationmark.triangle.fill")
                     .foregroundColor(.orange)
-                Text("다른 앱의 윈도우 목록을 가져오고 포커스를 제어하려면 권한이 필요합니다.")
+                Text(L("onboarding.permission.detail"))
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
-                Button("손쉬운 사용 권한 허용") {
+                Button(L("onboarding.permission.allow")) {
                     AccessibilityPermission.openSystemSettings()
                 }
             }

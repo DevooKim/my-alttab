@@ -37,7 +37,7 @@ public struct ShortcutRecorderView: View {
                 .foregroundColor(.secondary)
 
             Button(action: toggleKeyRecording) {
-                Text(isRecordingKey ? "키 입력…" : KeyboardShortcut.keyName(for: shortcut.keyCode))
+                Text(isRecordingKey ? L("recorder.pressKey") : KeyboardShortcut.keyName(for: shortcut.keyCode))
                     .frame(minWidth: 60)
             }
         }

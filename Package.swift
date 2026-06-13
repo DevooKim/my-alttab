@@ -6,11 +6,13 @@ import PackageDescription
 //   swift run minimaltab-tests
 let package = Package(
     name: "MinimalTab",
+    defaultLocalization: "en",
     platforms: [.macOS(.v13)],
     targets: [
         .target(
             name: "MinimalTabCore",
-            path: "Sources/MinimalTabCore"
+            path: "Sources/MinimalTabCore",
+            resources: [.process("Resources")]
         ),
         .executableTarget(
             name: "MinimalTab",

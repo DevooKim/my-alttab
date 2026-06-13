@@ -12,7 +12,7 @@ public final class OnboardingWindowController: NSWindowController {
             backing: .buffered,
             defer: false
         )
-        window.title = "My AltTab 시작하기"
+        window.title = L("window.onboarding.title")
         window.isReleasedWhenClosed = false
         self.init(window: window)
         self.onFinish = onFinish

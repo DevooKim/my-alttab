@@ -14,11 +14,11 @@ public final class StatusBarController {
         )
 
         let menu = NSMenu()
-        let aboutItem = NSMenuItem(title: "My AltTab 정보", action: #selector(showAbout), keyEquivalent: "")
+        let aboutItem = NSMenuItem(title: L("menu.about"), action: #selector(showAbout), keyEquivalent: "")
         aboutItem.target = self
         menu.addItem(aboutItem)
         menu.addItem(.separator())
-        let updateItem = NSMenuItem(title: "업데이트 확인…", action: #selector(checkForUpdates), keyEquivalent: "")
+        let updateItem = NSMenuItem(title: L("menu.checkForUpdates"), action: #selector(checkForUpdates), keyEquivalent: "")
         updateItem.target = self
         menu.addItem(updateItem)
         menu.addItem(.separator())

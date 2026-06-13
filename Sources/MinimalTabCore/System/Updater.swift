@@ -49,18 +49,18 @@ public enum Updater {
         do {
             release = try await fetchLatest()
         } catch {
-            if !silent { showInfo(title: "업데이트 확인 실패", text: "\(error.localizedDescription)") }
+            if !silent { showInfo(title: L("update.checkFailed.title"), text: "\(error.localizedDescription)") }
             return
         }
 
         guard let remote = SemanticVersion(release.tagName), remote > current else {
             if !silent {
-                showInfo(title: "최신 버전입니다", text: "현재 \(current.description) 버전을 사용 중입니다.")
+                showInfo(title: L("update.upToDate.title"), text: String(format: L("update.upToDate.text"), current.description))
             }
             return
         }
         guard let asset = release.zipAsset else {
-            if !silent { showInfo(title: "업데이트를 찾을 수 없음", text: "릴리스에 zip이 없습니다.") }
+            if !silent { showInfo(title: L("update.notFound.title"), text: L("update.notFound.text")) }
             return
         }
 
@@ -133,7 +133,7 @@ public enum Updater {
 
             relaunch(bundleURL: installed)
         } catch {
-            showInfo(title: "업데이트 실패", text: "\(error.localizedDescription)\n릴리스 페이지에서 직접 받아 주세요.")
+            showInfo(title: L("update.failed.title"), text: String(format: L("update.failed.text"), error.localizedDescription))
             openReleasesPage()
         }
     }
@@ -161,11 +161,11 @@ public enum Updater {
 
     private static func confirmUpdate(from: SemanticVersion, to: SemanticVersion, notes: String) -> Bool {
         let alert = NSAlert()
-        alert.messageText = "새 버전 \(to.description)이 있습니다"
+        alert.messageText = String(format: L("update.available.title"), to.description)
         let trimmed = notes.split(separator: "\n").prefix(12).joined(separator: "\n")
-        alert.informativeText = "현재 \(from.description) → \(to.description)\n\n\(trimmed)"
-        alert.addButton(withTitle: "지금 업데이트")
-        alert.addButton(withTitle: "나중에")
+        alert.informativeText = String(format: L("update.available.body"), from.description, to.description, String(trimmed))
+        alert.addButton(withTitle: L("update.install"))
+        alert.addButton(withTitle: L("common.later"))
         NSApp.activate(ignoringOtherApps: true)
         return alert.runModal() == .alertFirstButtonReturn
     }
@@ -186,9 +186,9 @@ public enum Updater {
         case badResponse, noAppInZip, commandFailed(String)
         var errorDescription: String? {
             switch self {
-            case .badResponse: return "GitHub 응답을 해석할 수 없습니다."
-            case .noAppInZip: return "내려받은 zip에서 앱을 찾지 못했습니다."
-            case .commandFailed(let p): return "명령 실패: \(p)"
+            case .badResponse: return L("update.error.badResponse")
+            case .noAppInZip: return L("update.error.noAppInZip")
+            case .commandFailed(let p): return String(format: L("update.error.commandFailed"), p)
             }
         }
     }

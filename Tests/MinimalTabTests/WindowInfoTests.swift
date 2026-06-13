@@ -26,11 +26,14 @@ func runWindowInfoTests() {
     expectEqual(makeWindow(title: "report.pdf").displayTitle, "report.pdf",
                 "non-empty title used as-is")
 
-    // PRD 4.A: minimized windows get a "(최소화됨)" suffix
-    expectEqual(makeWindow(title: "Notes", isMinimized: true).displayTitle, "Notes (최소화됨)",
+    // Minimized windows get the injected suffix (default " (minimized)")
+    expectEqual(makeWindow(title: "Notes", isMinimized: true).displayTitle, "Notes (minimized)",
                 "minimized title gets suffix")
-    expectEqual(makeWindow(title: "", isMinimized: true).displayTitle, "Untitled (최소화됨)",
+    expectEqual(makeWindow(title: "", isMinimized: true).displayTitle, "Untitled (minimized)",
                 "minimized untitled gets fallback and suffix")
+    // Injected localized strings are used when provided
+    expectEqual(makeWindow(title: "", isMinimized: true).displayTitle(untitled: "제목 없음", minimizedSuffix: " (최소화됨)"),
+                "제목 없음 (최소화됨)", "injected localized strings are applied")
 
     // PRD 4.A: setting OFF excludes minimized AND hidden windows entirely
     let mixed = [

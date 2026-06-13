@@ -16,6 +16,7 @@ public final class Preferences {
         public static let highlightStyle = "highlightStyle"
         public static let showAllSpaces = "showAllSpaces"
         public static let hasCompletedOnboarding = "hasCompletedOnboarding"
+        public static let languageOverride = "languageOverride"
     }
 
     public static let shared = Preferences()
@@ -99,6 +100,12 @@ public final class Preferences {
     public var highlightStyle: HighlightStyle {
         get { defaults.string(forKey: Key.highlightStyle).flatMap(HighlightStyle.init(rawValue:)) ?? .fill }
         set { defaults.set(newValue.rawValue, forKey: Key.highlightStyle) }
+    }
+
+    /// UI language override: "system" (follow macOS), "ko", or "en".
+    public var languageOverride: String {
+        get { defaults.string(forKey: Key.languageOverride) ?? "system" }
+        set { defaults.set(newValue, forKey: Key.languageOverride) }
     }
 
     /// True once the user has dismissed the first-run onboarding window.

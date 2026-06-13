@@ -1,0 +1,105 @@
+/* Window titles */
+"window.onboarding.title" = "Get Started with My AltTab";
+"window.settings.title" = "My AltTab Settings";
+
+/* Menu bar */
+"menu.about" = "About My AltTab";
+"menu.checkForUpdates" = "Check for Updates…";
+
+/* Key recorder */
+"recorder.pressKey" = "Press a key…";
+
+/* Switcher */
+"switcher.empty" = "No windows to switch";
+"switcher.minimizedSuffix" = " (minimized)";
+"switcher.untitled" = "Untitled";
+
+/* Onboarding */
+"onboarding.subtitle" = "A text-based window switcher with no previews";
+"onboarding.start" = "Get Started";
+"onboarding.shortcut.global" = "Switch all windows";
+"onboarding.shortcut.sameApp" = "Switch current app's windows";
+"onboarding.shortcut.reverse" = "Move backward (with the trigger key)";
+"onboarding.shortcut.quick" = "Close window / Quit app";
+"onboarding.permission.granted" = "Accessibility permission granted";
+"onboarding.permission.needed" = "Accessibility permission required";
+"onboarding.permission.detail" = "Permission is needed to list other apps' windows and control focus.";
+"onboarding.permission.allow" = "Allow Accessibility permission";
+
+/* Settings - tabs */
+"settings.tab.general" = "General";
+"settings.tab.ui" = "UI";
+"settings.tab.about" = "About";
+
+/* Settings - about */
+"settings.about.version" = "Version %@ (build %@)";
+"settings.about.checkForUpdates" = "Check for Updates";
+
+/* List size / highlight options */
+"listSize.small" = "Small";
+"listSize.medium" = "Medium";
+"listSize.large" = "Large";
+"highlight.fill" = "Fill";
+"highlight.border" = "Border only";
+
+/* Settings - UI */
+"settings.ui.listSection" = "Switcher List";
+"settings.ui.listSize" = "List size";
+"settings.ui.highlightStyle" = "Selection style";
+"settings.ui.spaceSection" = "Space";
+"settings.ui.showAllSpaces" = "Show windows from all Spaces";
+"settings.ui.showAllSpaces.footer" = "Also lists windows on other Spaces. Reading their titles requires Screen Recording permission; without it, only the app name is shown.";
+
+/* Settings - general */
+"settings.shortcutSection" = "Shortcuts";
+"settings.shortcut.global" = "Switch all windows (Global Switch)";
+"settings.shortcut.sameApp" = "Switch current app (Same-App Switch)";
+"settings.shortcut.reverse" = "Reverse key (while list is open)";
+"settings.shortcut.openSettings" = "Open settings key (while list is open)";
+"settings.quickSection" = "Quick Actions (while list is open)";
+"settings.quick.close" = "Close selected window";
+"settings.quick.quit" = "Quit selected app";
+"settings.listSection" = "List";
+"settings.includeMinimized" = "Include minimized windows in the list";
+"settings.exclusionSection" = "Excluded Apps";
+"settings.exclusion.empty" = "No excluded apps";
+"settings.exclusion.remove" = "Remove";
+"settings.exclusion.addRunning" = "Add from running apps…";
+"settings.exclusion.restoreDefaults" = "Restore defaults";
+"settings.generalSection" = "General";
+"settings.launchAtLogin" = "Launch at login";
+"settings.language" = "Language";
+"settings.language.system" = "Automatic";
+"settings.language.ko" = "한국어";
+"settings.language.en" = "English";
+"settings.language.restartNote" = "Changing the language restarts the app.";
+
+/* Exclusion friendly names */
+"app.screenSharing" = "Screen Sharing";
+"app.parallels" = "Parallels (all)";
+
+/* Screen Recording permission */
+"screenRec.title" = "Screen Recording permission required";
+"screenRec.detail" = "Reading the titles of windows on other Spaces requires Screen Recording permission. It is used only for the \"Show windows from all Spaces\" feature and does not capture screen contents beyond window titles.\n\nOnce you allow My AltTab in System Settings, the app restarts automatically.";
+"screenRec.openSettings" = "Open System Settings";
+"common.later" = "Later";
+
+/* Accessibility permission */
+"accessibility.title" = "Accessibility permission required";
+"accessibility.detail" = "My AltTab needs Accessibility permission to list other apps' windows and control focus.\n\nAllow My AltTab in System Settings > Privacy & Security > Accessibility, then relaunch the app.";
+"accessibility.openSettings" = "Open System Settings";
+
+/* Updater */
+"update.checkFailed.title" = "Update check failed";
+"update.upToDate.title" = "You're up to date";
+"update.upToDate.text" = "You're running version %@.";
+"update.notFound.title" = "No update found";
+"update.notFound.text" = "The release has no zip.";
+"update.failed.title" = "Update failed";
+"update.failed.text" = "%@\nPlease download it manually from the releases page.";
+"update.available.title" = "Version %@ is available";
+"update.available.body" = "Current %@ → %@\n\n%@";
+"update.install" = "Update Now";
+"update.error.badResponse" = "Couldn't parse the GitHub response.";
+"update.error.noAppInZip" = "No app found in the downloaded zip.";
+"update.error.commandFailed" = "Command failed: %@";

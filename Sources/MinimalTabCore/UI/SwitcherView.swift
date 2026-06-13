@@ -62,7 +62,7 @@ public struct SwitcherView: View {
             Image(systemName: "macwindow")
                 .frame(width: listSize.iconSize, height: listSize.iconSize)
                 .foregroundColor(.secondary)
-            Text("전환할 창이 없습니다")
+            Text(L("switcher.empty"))
                 .font(.system(size: listSize.fontSize))
                 .foregroundColor(.secondary)
         }
@@ -114,7 +114,7 @@ private struct SwitcherRow: View {
             // PRD 2.B: [icon] + [bold app name] - [regular window title]
             (Text(window.appName).fontWeight(.bold)
                 + Text("  —  ").foregroundColor(.secondary)
-                + Text(window.displayTitle))
+                + Text(window.displayTitle(untitled: L("switcher.untitled"), minimizedSuffix: L("switcher.minimizedSuffix"))))
                 .font(.system(size: size.fontSize))
                 .lineLimit(1)
                 .truncationMode(.middle)

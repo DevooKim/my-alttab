@@ -25,16 +25,11 @@ enum ScreenRecordingPermission {
     @MainActor
     static func explainAndPrompt() {
         let alert = NSAlert()
-        alert.messageText = "화면 기록 권한이 필요합니다"
-        alert.informativeText = """
-        다른 Space(데스크탑)에 있는 창의 제목을 읽으려면 화면 기록 권한이 필요합니다. \
-        이 권한은 '모든 Space의 창 표시' 기능에만 사용되며, 창 제목 외의 화면 내용은 캡처하지 않습니다.
-
-        시스템 설정에서 My AltTab을 허용하면 앱이 자동으로 다시 실행됩니다.
-        """
+        alert.messageText = L("screenRec.title")
+        alert.informativeText = L("screenRec.detail")
         alert.alertStyle = .informational
-        alert.addButton(withTitle: "시스템 설정 열기")
-        alert.addButton(withTitle: "나중에")
+        alert.addButton(withTitle: L("screenRec.openSettings"))
+        alert.addButton(withTitle: L("common.later"))
 
         request()
         if alert.runModal() == .alertFirstButtonReturn {
