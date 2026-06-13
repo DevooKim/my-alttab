@@ -36,39 +36,92 @@ public struct OnboardingView: View {
 
             Divider()
 
-            VStack(alignment: .leading, spacing: 8) {
-                ForEach(shortcuts, id: \.keys) { item in
-                    HStack(spacing: 12) {
-                        Text(item.keys)
-                            .font(.system(.body, design: .rounded).weight(.semibold))
-                            .frame(minWidth: 56)
-                            .padding(.vertical, 4)
-                            .padding(.horizontal, 8)
-                            .background(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .fill(Color.secondary.opacity(0.15))
-                            )
-                        Text(item.label)
-                        Spacer()
-                    }
-                }
-            }
-            .padding(.horizontal, 8)
+            shortcutList
+                .padding(.horizontal, 8)
 
             Divider()
 
             permissionRow
 
-            Button(action: finish) {
-                Text(L("onboarding.start")).frame(maxWidth: .infinity)
-            }
-            .keyboardShortcut(.defaultAction)
-            .controlSize(.large)
+            startButton
         }
         .padding(28)
         .frame(width: 420)
         .onAppear(perform: startPolling)
         .onDisappear(perform: stopPolling)
+    }
+
+    /// Shortcut key chips. Glass capsules grouped in a `GlassEffectContainer`
+    /// on macOS 26 (shared sampling region); plain rounded fills on macOS 13–15.
+    @ViewBuilder
+    private var shortcutList: some View {
+        if #available(macOS 26, *) {
+            GlassEffectContainer(spacing: 8) {
+                shortcutRows
+            }
+        } else {
+            shortcutRows
+        }
+    }
+
+    private var shortcutRows: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ForEach(shortcuts, id: \.keys) { item in
+                HStack(spacing: 12) {
+                    chipLabel(item.keys)
+                    Text(item.label)
+                    Spacer()
+                }
+            }
+        }
+    }
+
+    /// A single key chip: glass capsule on macOS 26, the original tinted
+    /// rounded rect on macOS 13–15.
+    /// Secondary action: glass button on macOS 26, default below.
+    @ViewBuilder
+    private var allowButton: some View {
+        let button = Button(L("onboarding.permission.allow")) {
+            AccessibilityPermission.openSystemSettings()
+        }
+        if #available(macOS 26, *) {
+            button.buttonStyle(.glass)
+        } else {
+            button
+        }
+    }
+
+    /// Primary CTA: prominent glass on macOS 26, default large button below.
+    @ViewBuilder
+    private var startButton: some View {
+        let button = Button(action: finish) {
+            Text(L("onboarding.start")).frame(maxWidth: .infinity)
+        }
+        .keyboardShortcut(.defaultAction)
+        .controlSize(.large)
+        if #available(macOS 26, *) {
+            button.buttonStyle(.glassProminent)
+        } else {
+            button
+        }
+    }
+
+    /// A single key chip: glass capsule on macOS 26, the original tinted
+    /// rounded rect on macOS 13–15.
+    @ViewBuilder
+    private func chipLabel(_ keys: String) -> some View {
+        let label = Text(keys)
+            .font(.system(.body, design: .rounded).weight(.semibold))
+            .frame(minWidth: 56)
+            .padding(.vertical, 4)
+            .padding(.horizontal, 8)
+        if #available(macOS 26, *) {
+            label.glassEffect(.regular, in: Capsule())
+        } else {
+            label.background(
+                RoundedRectangle(cornerRadius: 6).fill(Color.secondary.opacity(0.15))
+            )
+        }
     }
 
     @ViewBuilder
@@ -84,9 +137,7 @@ public struct OnboardingView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
-                Button(L("onboarding.permission.allow")) {
-                    AccessibilityPermission.openSystemSettings()
-                }
+                allowButton
             }
         }
     }

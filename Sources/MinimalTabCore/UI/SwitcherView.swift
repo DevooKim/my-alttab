@@ -12,6 +12,24 @@ public final class SwitcherViewModel: ObservableObject {
     public init() {}
 }
 
+/// Panel chrome: native Liquid Glass on macOS 26, frosted material + hairline
+/// stroke fallback on macOS 13–15.
+private struct PanelBackground: ViewModifier {
+    let shape: RoundedRectangle
+
+    func body(content: Content) -> some View {
+        if #available(macOS 26, *) {
+            // Native glass supplies its own edge highlight — no manual stroke.
+            content.glassEffect(.regular, in: shape)
+        } else {
+            content
+                .background(VisualEffectBackground())
+                .clipShape(shape)
+                .overlay(shape.strokeBorder(Color.white.opacity(0.15), lineWidth: 1))
+        }
+    }
+}
+
 /// NSVisualEffectView bridge for the frosted-glass background (PRD 2.A).
 struct VisualEffectBackground: NSViewRepresentable {
     func makeNSView(context: Context) -> NSVisualEffectView {
@@ -36,16 +54,17 @@ public struct SwitcherView: View {
     private var listSize: ListSize { ListSize(rawValue: listSizeRaw) ?? .medium }
     private var highlightStyle: HighlightStyle { HighlightStyle(rawValue: highlightStyleRaw) ?? .fill }
 
+    private let panelShape = RoundedRectangle(cornerRadius: 16, style: .continuous)
+
     public var body: some View {
+        sizedContent
+            .modifier(PanelBackground(shape: panelShape))
+    }
+
+    private var sizedContent: some View {
         content
-        .frame(width: listSize.panelWidth)
-        .frame(maxHeight: 480)
-        .background(VisualEffectBackground())
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .strokeBorder(Color.white.opacity(0.15), lineWidth: 1)
-        )
+            .frame(width: listSize.panelWidth)
+            .frame(maxHeight: 480)
     }
 
     @ViewBuilder
@@ -146,17 +165,32 @@ private struct SwitcherRow: View {
         .contentShape(Rectangle())
     }
 
+    private var selectionShape: RoundedRectangle {
+        RoundedRectangle(cornerRadius: 8, style: .continuous)
+    }
+
     @ViewBuilder
     private var selectionBackground: some View {
         // PRD 2.A: rounded accent-color highlight on selection
-        let shape = RoundedRectangle(cornerRadius: 8, style: .continuous)
         switch (isSelected, highlight) {
         case (false, _):
             Color.clear
         case (true, .fill):
-            shape.fill(Color.accentColor.opacity(0.85))
+            fillHighlight
         case (true, .border):
-            shape.strokeBorder(Color.accentColor, lineWidth: 2)
+            selectionShape.strokeBorder(Color.accentColor, lineWidth: 2)
         }
+    }
+
+    /// Selected-row fill: a morphing tinted glass capsule on macOS 26
+    /// (shared `glassEffectID` so it slides between rows), solid accent
+    /// fill on macOS 13–15.
+    private var fillHighlight: some View {
+        // Solid accent fill, all OS versions. Glass-on-glass (a glass selection
+        // plate over the already-glass panel) renders as an opaque plate that
+        // covers the row's icon/title, so the selection stays a plain accent
+        // fill — like macOS's own AltTab/Spotlight highlight. The panel
+        // background keeps its Liquid Glass.
+        selectionShape.fill(Color.accentColor.opacity(0.85))
     }
 }

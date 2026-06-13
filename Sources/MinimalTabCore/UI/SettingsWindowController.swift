@@ -12,6 +12,11 @@ public final class SettingsWindowController: NSWindowController {
         )
         window.title = L("window.settings.title")
         window.isReleasedWhenClosed = false
+        // Modern translucent chrome: let the window's titlebar blend into the
+        // content so the Liquid Glass / material backgrounds read as one
+        // continuous surface (macOS 26 look; harmless on older systems).
+        window.titlebarAppearsTransparent = true
+        window.styleMask.insert(.fullSizeContentView)
         self.init(window: window)
     }
 

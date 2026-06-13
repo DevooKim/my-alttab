@@ -1,6 +1,20 @@
 import SwiftUI
 import AppKit
 
+/// Window-background blur for the settings window. Pairs with the
+/// `fullSizeContentView` + transparent titlebar so the chrome and content
+/// share one translucent surface.
+private struct WindowMaterialBackground: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSVisualEffectView {
+        let view = NSVisualEffectView()
+        view.material = .windowBackground
+        view.blendingMode = .behindWindow
+        view.state = .active
+        return view
+    }
+    func updateNSView(_ nsView: NSVisualEffectView, context: Context) {}
+}
+
 public struct SettingsView: View {
     // PRD 3.B: @AppStorage persistence; key shared with Preferences.
     @AppStorage(Preferences.Key.includeMinimized) private var includeMinimized = true
@@ -30,30 +44,43 @@ public struct SettingsView: View {
                 .tabItem { Label(L("settings.tab.about"), systemImage: "info.circle") }
         }
         .frame(width: 460)
-        .padding(.top, 8)
+        .scenePadding()
+        // Fills the transparent titlebar region (fullSizeContentView) so the
+        // window reads as one continuous translucent surface.
+        .background(WindowMaterialBackground())
     }
 
     private var aboutTab: some View {
-        VStack(spacing: 10) {
-            Image(nsImage: NSApp.applicationIconImage)
-                .resizable()
-                .frame(width: 80, height: 80)
-            Text("My AltTab")
-                .font(.title2.bold())
-            Text(String(format: L("settings.about.version"), Self.bundleString("CFBundleShortVersionString"), Self.bundleString("CFBundleVersion")))
-                .foregroundColor(.secondary)
-            Button(L("settings.about.checkForUpdates")) {
-                Updater.checkForUpdates(silent: false)
+        VStack(spacing: 16) {
+            VStack(spacing: 10) {
+                Image(nsImage: NSApp.applicationIconImage)
+                    .resizable()
+                    .frame(width: 80, height: 80)
+                Text("My AltTab")
+                    .font(.title2.bold())
+                Text(String(format: L("settings.about.version"), Self.bundleString("CFBundleShortVersionString"), Self.bundleString("CFBundleVersion")))
+                    .foregroundColor(.secondary)
+                Button(L("settings.about.checkForUpdates")) {
+                    Updater.checkForUpdates(silent: false)
+                }
+                .glassButtonStyle()
+                .padding(.top, 4)
+                Link("github.com/DevooKim/my-alttab",
+                     destination: URL(string: "https://github.com/DevooKim/my-alttab")!)
+                Text(Self.bundleString("NSHumanReadableCopyright"))
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
-            .padding(.top, 4)
-            Link("github.com/DevooKim/my-alttab",
-                 destination: URL(string: "https://github.com/DevooKim/my-alttab")!)
-            Text(Self.bundleString("NSHumanReadableCopyright"))
-                .font(.caption)
-                .foregroundColor(.secondary)
+            .padding(28)
+            .frame(maxWidth: .infinity)
+            // App-info card: Liquid Glass panel on macOS 26, subtle material below.
+            .glassEffectWithFallback(
+                in: RoundedRectangle(cornerRadius: 20, style: .continuous),
+                fallbackMaterial: .regularMaterial
+            )
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 32)
+        .padding(24)
     }
 
     /// Info.plist values are absent when running unbundled (`swift run`).
@@ -144,13 +171,21 @@ public struct SettingsView: View {
                                     Text(bundleID).font(.caption).foregroundColor(.secondary)
                                     Spacer()
                                     Button(L("settings.exclusion.remove")) { blacklist.removeAll { $0 == bundleID } }
+                                        .buttonStyle(.borderless)
                                 }
                                 .padding(.vertical, 4)
-                                Divider()
+                                .padding(.horizontal, 10)
+                                if bundleID != blacklist.last { Divider() }
                             }
                         }
+                        .padding(.vertical, 4)
                     }
                     .frame(height: 150)
+                    // Inset glass card around the exclusion list.
+                    .glassEffectWithFallback(
+                        in: RoundedRectangle(cornerRadius: 12, style: .continuous),
+                        fallbackMaterial: .thinMaterial
+                    )
                 }
                 HStack {
                     Menu(L("settings.exclusion.addRunning")) {
@@ -158,8 +193,10 @@ public struct SettingsView: View {
                             Button(displayName(for: bundleID)) { blacklist.append(bundleID) }
                         }
                     }
+                    .fixedSize()
                     Spacer()
                     Button(L("settings.exclusion.restoreDefaults")) { blacklist = Preferences.defaultBlacklist }
+                        .glassButtonStyle()
                         .disabled(blacklist == Preferences.defaultBlacklist)
                 }
             }
