@@ -5,7 +5,9 @@ import AppKit
 /// `fullSizeContentView` + transparent titlebar so the chrome and content
 /// share one translucent surface.
 private struct WindowMaterialBackground: NSViewRepresentable {
-    var material: NSVisualEffectView.Material = .windowBackground
+    // .hudWindow is one of the most translucent system materials — lets more
+    // of the desktop/windows behind show through than .windowBackground.
+    var material: NSVisualEffectView.Material = .hudWindow
     var blendingMode: NSVisualEffectView.BlendingMode = .behindWindow
 
     func makeNSView(context: Context) -> NSVisualEffectView {
@@ -18,6 +20,64 @@ private struct WindowMaterialBackground: NSViewRepresentable {
     func updateNSView(_ nsView: NSVisualEffectView, context: Context) {
         nsView.material = material
         nsView.blendingMode = blendingMode
+    }
+}
+
+/// Makes the host window's titlebar (where SwiftUI draws the TabView's tab bar)
+/// transparent and extends content under it, so the tab-bar strip reads as the
+/// translucent window material instead of an opaque bar. macOS draws the tab
+/// bar background as part of the titlebar region; this is the only lever to it
+/// without private API.
+private struct TransparentTitlebar: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView()
+        DispatchQueue.main.async { Self.apply(to: view.window) }
+        return view
+    }
+    func updateNSView(_ nsView: NSView, context: Context) {
+        DispatchQueue.main.async { Self.apply(to: nsView.window) }
+    }
+
+    private static func apply(to window: NSWindow?) {
+        guard let window else { return }
+        window.titlebarAppearsTransparent = true
+        window.titleVisibility = .hidden
+        window.styleMask.insert(.fullSizeContentView)
+        window.isMovableByWindowBackground = true
+
+        // The opaque tab-bar strip is the titlebar region: SwiftUI's TabView
+        // draws its tab bar as a toolbar inside NSTitlebarContainerView, whose
+        // background is painted by an NSVisualEffectView + a dark solid
+        // fill view. Find that container in the window's theme frame and clear
+        // every background/effect view inside it so the strip shows the window
+        // material behind it. (No public API reaches the titlebar background.)
+        guard let themeFrame = window.contentView?.superview else { return }
+        for sub in themeFrame.subviews
+        where String(describing: type(of: sub)) == "NSTitlebarContainerView" {
+            clearTitlebarBackground(in: sub)
+        }
+    }
+
+    /// Recursively neutralize anything in the titlebar container that paints an
+    /// opaque background: visual-effect views and the solid fill/backdrop
+    /// layers. Toolbar item views (the tab buttons themselves) are left alone.
+    private static func clearTitlebarBackground(in view: NSView) {
+        for sub in view.subviews {
+            let cls = String(describing: type(of: sub))
+            if let effect = sub as? NSVisualEffectView {
+                effect.alphaValue = 0
+            } else if cls == "NSTitlebarBackgroundView"
+                        || cls.contains("BackdropView")
+                        || cls.contains("FillColorView")
+                        || cls.contains("ScrollPocket")
+                        || cls.contains("ContentBackgroundView") {
+                sub.alphaValue = 0
+            }
+            // Don't recurse into the toolbar (keeps the tab buttons visible).
+            if cls != "NSToolbarView" {
+                clearTitlebarBackground(in: sub)
+            }
+        }
     }
 }
 
@@ -49,10 +109,17 @@ public struct SettingsView: View {
             aboutTab
                 .tabItem { Label(L("settings.tab.about"), systemImage: "info.circle") }
         }
-        .frame(minWidth: 460, maxWidth: .infinity, minHeight: 300, maxHeight: .infinity)
+        .frame(minWidth: 460, maxWidth: .infinity, minHeight: 560, maxHeight: .infinity)
         // Fills the transparent titlebar region (fullSizeContentView) so the
-        // window reads as one continuous translucent surface.
-        .background(WindowMaterialBackground())
+        // window reads as one continuous translucent surface. A faint accent
+        // tint over the material gives the content area below the tab bar a
+        // subtle colour without touching the system-drawn tab bar itself.
+        .background {
+            WindowMaterialBackground()
+        }
+        // Make the titlebar/tab-bar strip transparent so it shows the window
+        // material instead of an opaque bar.
+        .background(TransparentTitlebar())
     }
 
     private var aboutTab: some View {
@@ -78,11 +145,6 @@ public struct SettingsView: View {
             }
             .padding(28)
             .frame(maxWidth: .infinity)
-            // App-info card: Liquid Glass panel on macOS 26, subtle material below.
-            .glassEffectWithFallback(
-                in: RoundedRectangle(cornerRadius: 20, style: .continuous),
-                fallbackMaterial: .regularMaterial
-            )
         }
         .frame(maxWidth: .infinity)
         .padding(24)

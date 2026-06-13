@@ -5,6 +5,8 @@
 /* Menu bar */
 "menu.about" = "About My AltTab";
 "menu.checkForUpdates" = "Check for Updates…";
+"menu.settings" = "Settings…";
+"menu.quit" = "Quit My AltTab";
 
 /* Key recorder */
 "recorder.pressKey" = "Press a key…";

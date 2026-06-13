@@ -2,12 +2,9 @@ import AppKit
 
 @MainActor
 public final class AppDelegate: NSObject, NSApplicationDelegate {
-    private var statusBar: StatusBarController?
-    private var settingsWindow: SettingsWindowController?
     private var switcher: SwitcherController?
     private var hotKeys: HotKeyMonitor?
     private var permissionRetryTimer: Timer?
-    private var onboardingWindow: OnboardingWindowController?
 
     public func applicationDidFinishLaunching(_ notification: Notification) {
         NSLog("MinimalTab: launched, accessibility trusted=\(AccessibilityPermission.isGranted)")
@@ -20,20 +17,18 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         // install an invisible minimal one so they work in our windows.
         NSApp.mainMenu = Self.makeMainMenu()
 
-        let settings = SettingsWindowController()
-        settingsWindow = settings
-        statusBar = StatusBarController(onSettings: { settings.show() })
+        // The status bar (MenuBarExtra) and settings (Settings scene) are now
+        // owned by the SwiftUI Scene graph in MinimalTabApp.
 
         // First run: show onboarding (which handles the permission prompt
         // inline). Later runs: the usual alert if permission is missing.
         if Preferences.shared.hasCompletedOnboarding {
             AccessibilityPermission.promptIfNeeded()
         } else {
-            let onboarding = OnboardingWindowController(onFinish: {
-                Preferences.shared.hasCompletedOnboarding = true
-            })
-            onboardingWindow = onboarding
-            onboarding.show()
+            // Open the SwiftUI onboarding Window scene. The window posts back
+            // through OnboardingWindow.finish() to set hasCompletedOnboarding
+            // and close itself.
+            OnboardingWindow.open()
         }
 
         let switcher = SwitcherController()
@@ -49,7 +44,7 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         hotKeys.onQuickClose = { switcher.quickCloseSelected() }
         hotKeys.onOpenSettings = {
             switcher.cancel()
-            settings.show()
+            MenuBarContent.openSettingsLegacy()
         }
         hotKeys.onQuickQuit = { switcher.quickQuitSelected() }
         if !hotKeys.start() {
