@@ -73,6 +73,14 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
         hotKeys?.stop()
     }
 
+    /// A menu-bar app must survive its windows closing. With SwiftUI scenes
+    /// (Settings/onboarding Window), closing the last window — or the Settings
+    /// scene churning when opened via showSettingsWindow: — would otherwise
+    /// quit the whole app.
+    public func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        false
+    }
+
     private static func makeMainMenu() -> NSMenu {
         let main = NSMenu()
 
