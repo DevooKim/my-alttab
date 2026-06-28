@@ -69,6 +69,8 @@ public enum L10n {
         "settings.ui.spaceSection": "Space",
         "settings.ui.showAllSpaces": "모든 Space의 창 표시",
         "settings.ui.showAllSpaces.footer": "다른 Space에 있는 창도 목록에 표시합니다. 그 창들의 제목을 읽으려면 화면 기록 권한이 필요하며, 권한이 없으면 앱 이름만 표시됩니다.",
+        "settings.ui.skipSpaceAnimation": "Space 전환 애니메이션 건너뛰기 (실험적)",
+        "settings.ui.skipSpaceAnimation.footer": "다른 Space의 창으로 전환할 때 슬라이드 애니메이션을 건너뜁니다. 비공개 시스템 동작에 의존해 macOS 버전에 따라 작동하지 않을 수 있으며, 그 경우 기존 애니메이션으로 전환됩니다.",
         "settings.ui.menuBarSection": "메뉴 막대",
         "settings.ui.showMenuBarIcon": "메뉴 막대 아이콘 표시",
         "settings.ui.showMenuBarIcon.footer": "숨기면, 스위처 목록이 열린 상태에서 설정 열기 키(기본 \",\")로 설정을 다시 열 수 있습니다.",

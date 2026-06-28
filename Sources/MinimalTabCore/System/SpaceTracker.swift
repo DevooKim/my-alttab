@@ -67,6 +67,66 @@ enum SpaceTracker {
         return map
     }
 
+    // MARK: Animation-free Space switching helpers (experimental)
+
+    /// The CGS Space id (id64) a window currently lives on, or nil. Used to
+    /// decide whether activating it requires a Space switch and to which one.
+    static func spaceID(forWindowID wid: CGWindowID) -> Int? {
+        guard let spaceIDs = CGSCopySpacesForWindows(
+            connection, kCGSAllSpacesMask, [Int(wid)] as CFArray
+        ) as? [Int] else { return nil }
+        return spaceIDs.first
+    }
+
+    /// 1-based Mission Control index (global walk: displays in order, then
+    /// spaces in order) of a CGS Space id, or nil if not found. For two
+    /// spaces on the SAME display the difference of their indices equals the
+    /// within-display step count (a display's spaces are contiguous in the
+    /// walk), which is what the Dock-swipe gesture needs.
+    static func missionControlIndex(ofSpaceID sid: Int) -> Int? {
+        guard let displays = CGSCopyManagedDisplaySpaces(connection) as? [[String: Any]] else {
+            return nil
+        }
+        var n = 0
+        for display in displays {
+            guard let spaces = display["Spaces"] as? [[String: Any]] else { continue }
+            for space in spaces {
+                n += 1
+                let id = (space["id64"] as? Int) ?? (space["ManagedSpaceID"] as? Int)
+                if id == sid { return n }
+            }
+        }
+        return nil
+    }
+
+    /// The display-identifier CFString and current Space id64 for the display
+    /// that owns the given Space id. Returns nil if the space isn't found.
+    static func displayAndCurrentSpace(forSpaceID sid: Int) -> (displayID: String, currentSpaceID: Int)? {
+        guard let displays = CGSCopyManagedDisplaySpaces(connection) as? [[String: Any]] else {
+            return nil
+        }
+        for display in displays {
+            guard let spaces = display["Spaces"] as? [[String: Any]],
+                  let displayID = display["Display Identifier"] as? String else { continue }
+            let contains = spaces.contains { space in
+                let id = (space["id64"] as? Int) ?? (space["ManagedSpaceID"] as? Int)
+                return id == sid
+            }
+            if contains {
+                let current = display["Current Space"] as? [String: Any]
+                let currentID = (current?["id64"] as? Int) ?? (current?["ManagedSpaceID"] as? Int) ?? -1
+                return (displayID, currentID)
+            }
+        }
+        return nil
+    }
+
+    /// True if a Space transition is already animating on the given display —
+    /// posting a swipe during one causes wrong landings, so callers abort.
+    static func isAnimating(displayID: String) -> Bool {
+        SLSManagedDisplayIsAnimating(connection, displayID as CFString)
+    }
+
     static func spaceNumber(forWindowID wid: CGWindowID, ordinals: [Int: Int]) -> Int? {
         guard let spaceIDs = CGSCopySpacesForWindows(
             connection,
@@ -129,3 +189,6 @@ private func CGSCopyWindowsWithOptionsAndTags(_ cid: UInt32, _ owner: Int, _ spa
 
 @_silgen_name("_AXUIElementGetWindow")
 private func _AXUIElementGetWindow(_ element: AXUIElement, _ wid: UnsafeMutablePointer<CGWindowID>) -> AXError
+
+@_silgen_name("CGSManagedDisplayIsAnimating")
+private func SLSManagedDisplayIsAnimating(_ cid: UInt32, _ display: CFString) -> Bool

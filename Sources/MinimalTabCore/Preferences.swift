@@ -17,6 +17,7 @@ public final class Preferences {
         public static let showAllSpaces = "showAllSpaces"
         public static let hasCompletedOnboarding = "hasCompletedOnboarding"
         public static let showMenuBarIcon = "showMenuBarIcon"
+        public static let skipSpaceSwitchAnimation = "skipSpaceSwitchAnimation"
     }
 
     public static let shared = Preferences()
@@ -123,6 +124,15 @@ public final class Preferences {
     public var showMenuBarIcon: Bool {
         get { defaults.bool(forKey: Key.showMenuBarIcon) }
         set { defaults.set(newValue, forKey: Key.showMenuBarIcon) }
+    }
+
+    /// EXPERIMENTAL: when activating a window on another Space, jump to that
+    /// Space without the slide animation by synthesizing a fast Dock-swipe
+    /// gesture. Off by default — it relies on undocumented event fields and
+    /// can break across macOS versions; falls back to the animated switch.
+    public var skipSpaceSwitchAnimation: Bool {
+        get { defaults.bool(forKey: Key.skipSpaceSwitchAnimation) }
+        set { defaults.set(newValue, forKey: Key.skipSpaceSwitchAnimation) }
     }
 
     /// Apps whose windows never appear in the switcher.

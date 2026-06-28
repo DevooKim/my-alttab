@@ -205,7 +205,7 @@ public final class SwitcherController {
         activeShortcut = nil
         panel.hide()
         if let selected {
-            activator.activate(selected)
+            activator.activate(selected, skipSpaceAnimation: preferences.skipSpaceSwitchAnimation)
             // Track by CGWindowID so MRU survives across Spaces (a window on
             // another Space has no AX element but still has a stable window ID).
             mru.touch(selected.windowID)

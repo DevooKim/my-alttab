@@ -96,6 +96,7 @@ public struct SettingsView: View {
     @AppStorage(Preferences.Key.listSize) private var listSizeRaw = ListSize.medium.rawValue
     @AppStorage(Preferences.Key.highlightStyle) private var highlightStyleRaw = HighlightStyle.fill.rawValue
     @AppStorage(Preferences.Key.showMenuBarIcon) private var showMenuBarIcon = true
+    @AppStorage(Preferences.Key.skipSpaceSwitchAnimation) private var skipSpaceSwitchAnimation = false
     @State private var showAllSpaces = Preferences.shared.showAllSpaces
 
     public init() {}
@@ -181,12 +182,16 @@ public struct SettingsView: View {
             }
             Section {
                 Toggle(L("settings.ui.showAllSpaces"), isOn: $showAllSpaces)
+                Toggle(L("settings.ui.skipSpaceAnimation"), isOn: $skipSpaceSwitchAnimation)
             } header: {
                 Text(L("settings.ui.spaceSection"))
             } footer: {
-                Text(L("settings.ui.showAllSpaces.footer"))
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(L("settings.ui.showAllSpaces.footer"))
+                    Text(L("settings.ui.skipSpaceAnimation.footer"))
+                }
+                .font(.caption)
+                .foregroundColor(.secondary)
             }
         }
         .formStyle(.grouped)
