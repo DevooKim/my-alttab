@@ -143,7 +143,7 @@ public final class SwitcherController {
         if let openingAction { pendingActions.append(openingAction) }
 
         Task.detached(priority: .userInitiated) {
-            let mruRank: (WindowInfo) -> Int? = { rank($0.axElement) }
+            let mruRank: (WindowInfo) -> Int? = { rank($0.windowID) }
             let raw: [WindowInfo]
             switch mode {
             case .global:
@@ -206,9 +206,9 @@ public final class SwitcherController {
         panel.hide()
         if let selected {
             activator.activate(selected)
-            if let axElement = selected.axElement {
-                mru.touch(axElement)
-            }
+            // Track by CGWindowID so MRU survives across Spaces (a window on
+            // another Space has no AX element but still has a stable window ID).
+            mru.touch(selected.windowID)
         }
     }
 

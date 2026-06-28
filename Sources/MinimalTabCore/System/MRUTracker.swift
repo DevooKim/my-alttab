@@ -3,38 +3,43 @@ import ApplicationServices
 
 /// Tracks windows in most-recently-used order. Two signals feed it:
 /// app activation notifications (the activated app's focused window) and
-/// explicit switcher commits. AXUIElement identity is stable for a given
-/// window, so CFEqual matches across enumerations.
+/// explicit switcher commits.
+///
+/// Identity is the `CGWindowID`, NOT the AXUIElement. An AXUIElement is only
+/// reachable for windows on the *active* Space, so AX-based identity broke MRU
+/// the moment a window on another Space was involved (its element is nil, so it
+/// could never match). CGWindowID is stable for a window's lifetime and Space-
+/// independent, so MRU now survives switching across Spaces.
 @MainActor
 public final class MRUTracker {
-    private var elements: [AXUIElement] = []
+    private var windowIDs: [CGWindowID] = []
     private var observer: NSObjectProtocol?
     private let capacity = 100
 
     public init() {}
 
-    public func touch(_ element: AXUIElement) {
-        elements.removeAll { CFEqual($0, element) }
-        elements.insert(element, at: 0)
-        if elements.count > capacity {
-            elements.removeLast(elements.count - capacity)
+    public func touch(_ windowID: CGWindowID) {
+        guard windowID != 0 else { return }
+        windowIDs.removeAll { $0 == windowID }
+        windowIDs.insert(windowID, at: 0)
+        if windowIDs.count > capacity {
+            windowIDs.removeLast(windowIDs.count - capacity)
         }
     }
 
-    public func rank(of element: AXUIElement?) -> Int? {
-        guard let element else { return nil }
-        return elements.firstIndex { CFEqual($0, element) }
+    public func rank(of windowID: CGWindowID) -> Int? {
+        guard windowID != 0 else { return nil }
+        return windowIDs.firstIndex(of: windowID)
     }
 
     /// An immutable snapshot of the current MRU order, safe to use for
     /// ranking from a background thread (enumeration runs off-main, but the
-    /// tracker is @MainActor). `CFEqual` is thread-safe; AXUIElements are
-    /// immutable references, so reading them off-main is fine.
-    public func rankSnapshot() -> @Sendable (AXUIElement?) -> Int? {
-        let snapshot = elements
-        return { element in
-            guard let element else { return nil }
-            return snapshot.firstIndex { CFEqual($0, element) }
+    /// tracker is @MainActor).
+    public func rankSnapshot() -> @Sendable (CGWindowID) -> Int? {
+        let snapshot = windowIDs
+        return { windowID in
+            guard windowID != 0 else { return nil }
+            return snapshot.firstIndex(of: windowID)
         }
     }
 
@@ -56,8 +61,9 @@ public final class MRUTracker {
                 return
             }
             let window = unsafeDowncast(value as AnyObject, to: AXUIElement.self)
+            guard let wid = SpaceTracker.windowID(for: window) else { return }
             MainActor.assumeIsolated {
-                self?.touch(window)
+                self?.touch(wid)
             }
         }
     }
