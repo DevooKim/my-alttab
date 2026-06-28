@@ -6,7 +6,16 @@ public struct WindowActivator {
 
     /// Brings the window to the front, restoring it first if minimized or
     /// if its app is hidden (PRD 4.A).
-    public func activate(_ window: WindowInfo) {
+    ///
+    /// `skipSpaceAnimation` (experimental) tries to jump to the window's Space
+    /// without the slide animation before focusing it; it's best-effort and
+    /// falls back to the normal animated path on failure.
+    public func activate(_ window: WindowInfo, skipSpaceAnimation: Bool = false) {
+        if skipSpaceAnimation, window.windowID != 0 {
+            // Best-effort: snap to the window's Space without animation. If it
+            // returns false, fall through to the normal (animated) activation.
+            _ = SpaceSwitcher.jumpToSpace(ofWindowID: window.windowID)
+        }
         guard let axElement = window.axElement else {
             // Window on an inactive Space has no reachable AX element.
             // Activating the app and raising by CGWindowID makes macOS
@@ -56,8 +65,22 @@ public struct WindowActivator {
             return false
         }
         if raiseMatching() { return }
-        // The window's Space may not be active yet; try again shortly.
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { _ = raiseMatching() }
+        // The Space switch is async, so the target window often isn't AX-visible
+        // yet right after activate() — the app's window list can even come back
+        // empty. Retry a few times over ~1s until the specific window appears,
+        // instead of a single 0.15s attempt (which raised whatever window the
+        // app surfaced by default — frequently the wrong one).
+        retryRaise(raiseMatching, attemptsLeft: 10, interval: 0.1)
+    }
+
+    /// Polls `attempt` until it succeeds or the attempts run out. Used to wait
+    /// out the async Space switch before raising a specific off-Space window.
+    private func retryRaise(_ attempt: @escaping () -> Bool, attemptsLeft: Int, interval: TimeInterval) {
+        guard attemptsLeft > 0 else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + interval) {
+            if attempt() { return }
+            self.retryRaise(attempt, attemptsLeft: attemptsLeft - 1, interval: interval)
+        }
     }
 
     /// Quick Action: presses the window's close button (same as clicking
