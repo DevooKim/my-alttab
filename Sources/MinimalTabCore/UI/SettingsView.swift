@@ -97,7 +97,6 @@ public struct SettingsView: View {
     @AppStorage(Preferences.Key.highlightStyle) private var highlightStyleRaw = HighlightStyle.fill.rawValue
     @AppStorage(Preferences.Key.showMenuBarIcon) private var showMenuBarIcon = true
     @State private var showAllSpaces = Preferences.shared.showAllSpaces
-    @State private var languageOverride = Preferences.shared.languageOverride
 
     public init() {}
 
@@ -181,16 +180,6 @@ public struct SettingsView: View {
                     .font(.caption).foregroundColor(.secondary)
             }
             Section {
-                Picker(L("settings.language"), selection: $languageOverride) {
-                    Text(L("settings.language.system")).tag("system")
-                    Text(L("settings.language.ko")).tag("ko")
-                    Text(L("settings.language.en")).tag("en")
-                }
-            } footer: {
-                Text(L("settings.language.restartNote"))
-                    .font(.caption).foregroundColor(.secondary)
-            }
-            Section {
                 Toggle(L("settings.ui.showAllSpaces"), isOn: $showAllSpaces)
             } header: {
                 Text(L("settings.ui.spaceSection"))
@@ -201,12 +190,6 @@ public struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .onChange(of: languageOverride) { code in
-            Preferences.shared.languageOverride = code
-            // A language change re-reads strings app-wide; relaunch so every
-            // view rebuilds in the new language.
-            ScreenRecordingPermission.relaunch()
-        }
         .onChange(of: showAllSpaces) { on in
             Preferences.shared.showAllSpaces = on
             // Ask for Screen Recording only when turning the feature ON and
