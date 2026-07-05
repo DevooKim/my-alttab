@@ -81,18 +81,43 @@ public final class MRUTracker {
             guard let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication else {
                 return
             }
-            let axApp = AXUIElementCreateApplication(app.processIdentifier)
-            var focused: CFTypeRef?
-            guard AXUIElementCopyAttributeValue(axApp, kAXFocusedWindowAttribute as CFString, &focused) == .success,
-                  let value = focused, CFGetTypeID(value) == AXUIElementGetTypeID() else {
-                return
-            }
-            let window = unsafeDowncast(value as AnyObject, to: AXUIElement.self)
-            guard let wid = SpaceTracker.windowID(for: window) else { return }
             MainActor.assumeIsolated {
-                self?.touch(wid, source: .activation)
+                self?.touchFocusedWindow(of: app, retriesLeft: 4)
             }
         }
+    }
+
+    /// A freshly launched app activates before its first window exists, so
+    /// the AX lookup fails at notification time and the window would never
+    /// enter MRU history. Retry briefly while the app stays frontmost.
+    private func touchFocusedWindow(of app: NSRunningApplication, retriesLeft: Int) {
+        if let wid = Self.focusedWindowID(of: app.processIdentifier) {
+            touch(wid, source: .activation)
+            return
+        }
+        guard retriesLeft > 0 else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            MainActor.assumeIsolated {
+                guard NSWorkspace.shared.frontmostApplication?.processIdentifier
+                        == app.processIdentifier else { return }
+                self?.touchFocusedWindow(of: app, retriesLeft: retriesLeft - 1)
+            }
+        }
+    }
+
+    /// CGWindowID of the app's focused window, or nil (no window yet, app
+    /// unresponsive, or the window is on another Space).
+    public static func focusedWindowID(of pid: pid_t) -> CGWindowID? {
+        let axApp = AXUIElementCreateApplication(pid)
+        // Don't let a hung app stall the main thread for the default ~6s.
+        AXUIElementSetMessagingTimeout(axApp, 0.25)
+        var focused: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(axApp, kAXFocusedWindowAttribute as CFString, &focused) == .success,
+              let value = focused, CFGetTypeID(value) == AXUIElementGetTypeID() else {
+            return nil
+        }
+        let window = unsafeDowncast(value as AnyObject, to: AXUIElement.self)
+        return SpaceTracker.windowID(for: window)
     }
 
     public func stopObserving() {

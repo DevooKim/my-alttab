@@ -129,6 +129,14 @@ public final class SwitcherController {
         let blacklist = preferences.blacklistedBundleIDs
         let showAllSpaces = preferences.showAllSpaces
         let includeMinimized = preferences.includeMinimized
+        // The activation observer can miss a freshly launched app (it
+        // activates before its window exists), leaving the focused window
+        // unranked and sorted below all MRU history. Touch it now so the
+        // current window always lists first.
+        if let front = NSWorkspace.shared.frontmostApplication,
+           let wid = MRUTracker.focusedWindowID(of: front.processIdentifier) {
+            mru.touch(wid, source: .activation)
+        }
         let rank = mru.rankSnapshot()
         let enumerator = self.enumerator
 
