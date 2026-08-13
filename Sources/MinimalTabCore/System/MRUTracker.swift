@@ -119,9 +119,9 @@ public final class MRUTracker {
 
     /// CGWindowID of the app's focused window, or nil (no window yet, app
     /// unresponsive, or the window is on another Space).
-    public static func focusedWindowID(of pid: pid_t) -> CGWindowID? {
+    public nonisolated static func focusedWindowID(of pid: pid_t) -> CGWindowID? {
         let axApp = AXUIElementCreateApplication(pid)
-        // Don't let a hung app stall the main thread for the default ~6s.
+        // Don't let a hung app stall its caller for the default ~6s.
         AXUIElementSetMessagingTimeout(axApp, 0.25)
         var focused: CFTypeRef?
         guard AXUIElementCopyAttributeValue(axApp, kAXFocusedWindowAttribute as CFString, &focused) == .success,

@@ -129,15 +129,7 @@ public final class SwitcherController {
         let blacklist = preferences.blacklistedBundleIDs
         let showAllSpaces = preferences.showAllSpaces
         let includeMinimized = preferences.includeMinimized
-        // The activation observer can miss a freshly launched app (it
-        // activates before its window exists), leaving the focused window
-        // unranked and sorted below all MRU history. Touch it now so the
-        // current window always lists first.
-        if let front = NSWorkspace.shared.frontmostApplication,
-           let wid = MRUTracker.focusedWindowID(of: front.processIdentifier) {
-            mru.touch(wid, source: .activation)
-        }
-        let rank = mru.rankSnapshot()
+        let frontmostPID = NSWorkspace.shared.frontmostApplication?.processIdentifier
         let enumerator = self.enumerator
 
         switch mode {
@@ -151,6 +143,18 @@ public final class SwitcherController {
         if let openingAction { pendingActions.append(openingAction) }
 
         Task.detached(priority: .userInitiated) {
+            // Refresh the focused window away from the main actor: AX IPC can
+            // block for up to its 250 ms timeout. Apply the existing activation
+            // guard on the main actor, then take an immutable rank snapshot.
+            let focusedWindowID = frontmostPID.flatMap { MRUTracker.focusedWindowID(of: $0) }
+            guard let rank = await MainActor.run(body: { [weak self] () -> MRURankSnapshot? in
+                guard let self, token == self.loadToken, self.isLoading else { return nil }
+                if let focusedWindowID {
+                    self.mru.touch(focusedWindowID, source: .activation)
+                }
+                return self.mru.rankSnapshot()
+            }) else { return }
+
             let mruRank: (WindowInfo) -> Int? = { rank.rank(of: $0.windowID) }
             let raw: [WindowInfo]
             switch mode {

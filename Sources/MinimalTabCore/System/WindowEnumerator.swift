@@ -38,7 +38,9 @@ public struct WindowEnumerator {
         }
         if showAllSpaces {
             windows.append(contentsOf: inactiveSpaceWindows(
-                alreadyFound: windows, ordinals: ordinals, blacklist: blacklist
+                alreadyFound: windows,
+                spaceByWindowID: spaceByWindowID,
+                blacklist: blacklist
             ))
         }
         return Self.order(windows, pidRank: Self.currentPidRank(), mruRank: mruRank)
@@ -51,15 +53,10 @@ public struct WindowEnumerator {
     /// only when the user opts into "show all Spaces".
     private func inactiveSpaceWindows(
         alreadyFound: [WindowInfo],
-        ordinals: [Int: Int],
+        spaceByWindowID: [CGWindowID: Int],
         blacklist: [String]
     ) -> [WindowInfo] {
         let knownIDs = Set(alreadyFound.map(\.windowID))
-        // Space membership per CGWindowID (covers all Spaces).
-        let spaceByID = Dictionary(
-            SpaceTracker.allSpaceWindowIDs(ordinals: ordinals).map { ($0.id, $0.space) },
-            uniquingKeysWith: { a, _ in a }
-        )
         // The full window list (all Spaces) carries the metadata we need;
         // per-ID description lookups don't work for off-Space windows, so
         // we fetch everything once and cross-reference by ID.
@@ -74,7 +71,7 @@ public struct WindowEnumerator {
             guard let layer = entry[kCGWindowLayer as String] as? Int, layer == 0,
                   let widValue = entry[kCGWindowNumber as String] as? CGWindowID,
                   !knownIDs.contains(widValue),
-                  let space = spaceByID[widValue],
+                  let space = spaceByWindowID[widValue],
                   let pid = entry[kCGWindowOwnerPID as String] as? pid_t,
                   let app = NSRunningApplication(processIdentifier: pid),
                   app.activationPolicy == .regular,
@@ -131,6 +128,8 @@ public struct WindowEnumerator {
         }
 
         let appName = app.localizedName ?? "Unknown"
+        let appIcon = app.icon
+        let isHidden = app.isHidden
         return axWindows.compactMap { axWindow in
             // Only standard windows — skips palettes, sheets, popovers.
             guard stringAttribute(axWindow, kAXSubroleAttribute) == kAXStandardWindowSubrole as String else {
@@ -141,10 +140,10 @@ public struct WindowEnumerator {
                 id: UUID(),
                 pid: pid,
                 appName: appName,
-                appIcon: app.icon,
+                appIcon: appIcon,
                 title: stringAttribute(axWindow, kAXTitleAttribute) ?? "",
                 isMinimized: boolAttribute(axWindow, kAXMinimizedAttribute),
-                isHidden: app.isHidden,
+                isHidden: isHidden,
                 spaceNumber: wid != 0 ? spaceByWindowID[wid] : nil,
                 windowID: wid,
                 axElement: axWindow
