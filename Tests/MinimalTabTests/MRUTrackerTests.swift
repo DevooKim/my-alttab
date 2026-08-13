@@ -14,4 +14,7 @@ func runMRUTrackerTests() {
     source.insert(123, at: 0)
     expectEqual(snapshot.rank(of: 42), 0, "snapshot is immutable after source changes")
     expect(snapshot.rank(of: 123) == nil, "snapshot does not observe later source changes")
+
+    let withDuplicate = MRURankSnapshot(windowIDs: [42, 7, 42])
+    expectEqual(withDuplicate.rank(of: 42), 0, "duplicate IDs keep their earliest MRU rank")
 }

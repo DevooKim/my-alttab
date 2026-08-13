@@ -205,9 +205,8 @@ public struct WindowEnumerator {
         pidRank: [pid_t: Int],
         mruRank: (WindowInfo) -> Int? = { _ in nil }
     ) -> [WindowInfo] {
-        // Decorate-sort-undecorate: compute each window's sort key once
-        // (mruRank is a linear CFEqual scan, so recomputing it inside the
-        // comparator would be O(N log N) scans instead of O(N)).
+        // Decorate-sort-undecorate: compute the injected MRU rank once per
+        // window and retain the source offset as the stable fallback order.
         typealias SortKey = (Int, Int, Int, Int)
         let keyed: [(key: SortKey, element: WindowInfo)] = windows.enumerated().map { offset, element in
             ((element.isMinimized ? 1 : 0, mruRank(element) ?? Int.max,

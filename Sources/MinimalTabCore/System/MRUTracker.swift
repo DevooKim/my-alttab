@@ -6,9 +6,12 @@ public struct MRURankSnapshot: Sendable {
     private let ranks: [CGWindowID: Int]
 
     public init(windowIDs: [CGWindowID]) {
-        self.ranks = Dictionary(
-            uniqueKeysWithValues: windowIDs.enumerated().map { ($0.element, $0.offset) }
-        )
+        var ranks: [CGWindowID: Int] = [:]
+        ranks.reserveCapacity(windowIDs.count)
+        for (rank, windowID) in windowIDs.enumerated() where ranks[windowID] == nil {
+            ranks[windowID] = rank
+        }
+        self.ranks = ranks
     }
 
     public func rank(of windowID: CGWindowID) -> Int? {
