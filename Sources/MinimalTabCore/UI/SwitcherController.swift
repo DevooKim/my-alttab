@@ -151,7 +151,7 @@ public final class SwitcherController {
         if let openingAction { pendingActions.append(openingAction) }
 
         Task.detached(priority: .userInitiated) {
-            let mruRank: (WindowInfo) -> Int? = { rank($0.windowID) }
+            let mruRank: (WindowInfo) -> Int? = { rank.rank(of: $0.windowID) }
             let raw: [WindowInfo]
             switch mode {
             case .global:

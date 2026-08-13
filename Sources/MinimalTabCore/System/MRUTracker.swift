@@ -1,6 +1,22 @@
 import AppKit
 import ApplicationServices
 
+/// Immutable MRU rank table that can be read off-main during enumeration.
+public struct MRURankSnapshot: Sendable {
+    private let ranks: [CGWindowID: Int]
+
+    public init(windowIDs: [CGWindowID]) {
+        self.ranks = Dictionary(
+            uniqueKeysWithValues: windowIDs.enumerated().map { ($0.element, $0.offset) }
+        )
+    }
+
+    public func rank(of windowID: CGWindowID) -> Int? {
+        guard windowID != 0 else { return nil }
+        return ranks[windowID]
+    }
+}
+
 /// Tracks windows in most-recently-used order. Two signals feed it:
 /// app activation notifications (the activated app's focused window) and
 /// explicit switcher commits.
@@ -62,12 +78,8 @@ public final class MRUTracker {
     /// An immutable snapshot of the current MRU order, safe to use for
     /// ranking from a background thread (enumeration runs off-main, but the
     /// tracker is @MainActor).
-    public func rankSnapshot() -> @Sendable (CGWindowID) -> Int? {
-        let snapshot = windowIDs
-        return { windowID in
-            guard windowID != 0 else { return nil }
-            return snapshot.firstIndex(of: windowID)
-        }
+    public func rankSnapshot() -> MRURankSnapshot {
+        MRURankSnapshot(windowIDs: windowIDs)
     }
 
     /// Records the focused window of whichever app the user activates, so
