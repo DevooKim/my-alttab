@@ -141,7 +141,7 @@ Expected: `Build complete!` and `Test Suite 'All tests' passed` (1 test).
     <key>CFBundleDisplayName</key>
     <string>MinimalTab</string>
     <key>CFBundleIdentifier</key>
-    <string>io.goorm.minimaltab</string>
+    <string>io.devookim.minimaltab</string>
     <key>CFBundleVersion</key>
     <string>1</string>
     <key>CFBundleShortVersionString</key>

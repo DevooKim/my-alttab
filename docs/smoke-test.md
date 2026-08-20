@@ -6,7 +6,7 @@ across rebuilds. If it ever gets lost: System Settings > Privacy & Security
 > Accessibility — remove and re-add My AltTab.
 
 ## First-run onboarding
-- [ ] On first launch (reset: `defaults delete io.goorm.minimaltab hasCompletedOnboarding`), the onboarding window appears and the standalone permission alert does NOT.
+- [ ] On first launch (reset: `defaults delete io.devookim.minimaltab hasCompletedOnboarding`), the onboarding window appears and the standalone permission alert does NOT.
 - [ ] Onboarding shows app icon, shortcut guide, and an Accessibility status row.
 - [ ] When permission is missing the row shows ⚠️ + a "권한 허용" button; granting it (in System Settings) flips the row to ✓ live, without relaunch.
 - [ ] "시작하기" closes the window; relaunching does NOT show onboarding again.

@@ -11,7 +11,7 @@
 	<key>CFBundleIconFile</key>
 	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
-	<string>io.goorm.minimaltab</string>
+	<string>io.devookim.minimaltab</string>
 	<key>CFBundleName</key>
 	<string>My AltTab</string>
 	<key>CFBundlePackageType</key>
